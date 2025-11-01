@@ -20,8 +20,8 @@ def main():
     print("=" * 60)
     
     # Configuration
-    MODEL_PATH = "/home/alperen/fomac/FoMAC/model-training/ball-detection/models/player_ball_detector/weights/best.pt"
-    VIDEO_PATH = "/home/alperen/bitirme/soccerNet/england_epl/2015-2016/2015-08-08 - 19-30 Chelsea 2 - 2 Swansea/1_720p.mkv"
+    MODEL_PATH = "C:/Users/Admin/Desktop/bitirme/FoMACBitirme/model-training/ball-detection/models/player_ball_detector/weights/best.pt"
+    VIDEO_PATH = "C:/Users/Admin/Desktop/bitirme/FoMACBitirme/model-training/ball-detection/soccerNet/england_epl/2015-2016/2015-08-08 - 19-30 Chelsea 2 - 2 Swansea/1_720p.mkv"
     NUM_FRAMES = 100
     FRAMES_PER_GROUP = 10
     CONFIDENCE = 0.1
@@ -65,17 +65,27 @@ def main():
         print(f"   Frames per group: {results['frames_per_group']}")
         print(f"   Total frames: {results['total_frames_processed']}")
         print()
+        class_order = list(results.get('improvement', results['after_predictions']).keys())
+        if not class_order:
+            class_order = sorted(results['after_predictions'].keys())
+
         print("🔴 BEFORE Training (Player-only model):")
-        print(f"   Players detected: {results['before_predictions']['Player']}")
-        print(f"   Balls detected: {results['before_predictions']['Ball']}")
+        for class_name in class_order:
+            count = results['before_predictions'].get(class_name, 0)
+            print(f"   {class_name}: {count}")
+
         print()
         print("🟢 AFTER Training (Player + Ball model):")
-        print(f"   Players detected: {results['after_predictions']['Player']}")
-        print(f"   Balls detected: {results['after_predictions']['Ball']}")
+        for class_name in class_order:
+            count = results['after_predictions'].get(class_name, 0)
+            print(f"   {class_name}: {count}")
+
         print()
         print("📈 IMPROVEMENT:")
-        print(f"   Players: +{results['improvement']['Player']}")
-        print(f"   Balls: +{results['improvement']['Ball']}")
+        for class_name in class_order:
+            delta = results['improvement'].get(class_name, 0)
+            sign = "+" if delta >= 0 else ""
+            print(f"   {class_name}: {sign}{delta}")
         print(f"   Processing time: {results['processing_time']:.2f} seconds")
         
     except Exception as e:

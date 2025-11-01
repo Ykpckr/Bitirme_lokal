@@ -1,14 +1,14 @@
 # YOLO Model Configuration
 
 # Model architecture - Using pre-trained player detection model as base
-model: "/home/alperen/fomac/FoMAC/model-training/player-detection/models/football_detector_optimized/weights/best.pt"  # Pre-trained player model
+model: "C:/Users/Admin/Desktop/bitirme/FoMACBitirme/model-training/player-detection/models/football_detector_optimized/weights/best.pt"  # Pre-trained player model
 
 # Input configuration
 imgsz: 1024  # Input image size (increased for better small object detection)
-batch: 16    # Batch size (RTX 5070 can handle larger batches)
+batch: 12    # Batch size (RTX 5070 can handle larger batches)
 
 # Training epochs and optimization
-epochs: 50  # Number of training epochs for fine-tuning
+epochs: 100  # Number of training epochs for fine-tuning
 pretrained: true  # Use pretrained weights
 optimizer: "AdamW"  # Optimizer type
 
@@ -48,7 +48,7 @@ copy_paste: 0.1     # Copy-paste augmentation probability
 # Training settings
 patience: 20        # Early stopping patience (reduced for faster iteration)
 save_period: 3      # Model save period (more frequent saves)
-cache: true         # Cache images in RAM (RTX 5070 systems usually have good RAM)
+cache: false         # Cache images in RAM (RTX 5070 systems usually have good RAM)
 rect: false         # Rectangular training
 cos_lr: true        # Cosine learning rate scheduler
 close_mosaic: 10    # Close mosaic in last N epochs (reduced)
@@ -62,7 +62,7 @@ iou: 0.65     # IoU threshold
 max_det: 1000 # Maximum detections
 
 # Performance settings
-workers: 12     # Number of dataloader workers (RTX 5070 + modern CPU)
+workers: 8     # Number of dataloader workers (RTX 5070 + modern CPU)
 profile: false  # Profile training
 fraction: 1.0   # Dataset fraction to use
 

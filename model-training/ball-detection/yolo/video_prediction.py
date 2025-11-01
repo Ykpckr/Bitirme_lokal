@@ -37,21 +37,22 @@ class VideoPredictor:
         self.model_path = Path(model_path)
         self.confidence_threshold = confidence_threshold
         
-        # Class names for our multi-class model
-        self.class_names = {0: 'Player', 1: 'Ball'}
-        self.class_colors = {0: (0, 255, 0), 1: (0, 0, 255)}  # Green for Player, Red for Ball
+        # Class labels and visualization colors will be initialized after the model loads
+        self.class_names = {}
+        self.class_colors = {}
         
         # Load the trained model
         logger.info(f"🏋️ Loading YOLO model from: {self.model_path}")
         try:
             self.model = YOLO(str(self.model_path))
             logger.info("✅ Model loaded successfully")
+            self._initialize_classes()
         except Exception as e:
             logger.error(f"❌ Failed to load model: {e}")
             raise
         
         # Load original player-only model for comparison
-        original_model_path = "/home/alperen/fomac/FoMAC/model-training/player-detection/models/football_detector_optimized/weights/best.pt"
+        original_model_path = "C:/Users/Admin/Desktop/bitirme/FoMACBitirme/model-training/player-detection/models/football_detector_optimized/weights/best.pt"
         logger.info(f"🔄 Loading original player-only model from: {original_model_path}")
         try:
             self.original_model = YOLO(original_model_path)
@@ -59,6 +60,49 @@ class VideoPredictor:
         except Exception as e:
             logger.warning(f"⚠️ Could not load original model: {e}")
             self.original_model = None
+
+    def _initialize_classes(self):
+        """Load class names from the model and prepare visualization colors."""
+        model_names = getattr(self.model, 'names', None)
+
+        if isinstance(model_names, dict):
+            self.class_names = {int(key): value for key, value in model_names.items()}
+        elif isinstance(model_names, (list, tuple)):
+            self.class_names = {idx: name for idx, name in enumerate(model_names)}
+
+        if not self.class_names:
+            # Fallback for known training classes
+            self.class_names = {0: 'Player', 1: 'Ball', 2: 'Referee'}
+
+        default_colors = {
+            'Player': (0, 255, 0),
+            'Ball': (0, 0, 255),
+            'Referee': (255, 165, 0)
+        }
+
+        self.class_colors = {
+            class_id: default_colors.get(name, self._generate_color_for_class(class_id, name))
+            for class_id, name in self.class_names.items()
+        }
+
+    @staticmethod
+    def _generate_color_for_class(class_id: int, class_name: str) -> tuple:
+        """Generate a deterministic color for unknown classes."""
+        seed = class_id * 9973 + sum(ord(ch) for ch in class_name)
+        rng = random.Random(seed)
+        return (
+            rng.randint(64, 255),
+            rng.randint(64, 255),
+            rng.randint(64, 255)
+        )
+
+    def _count_predictions_by_class(self, predictions: list) -> dict:
+        """Aggregate detections per class for statistics and reporting."""
+        counts = {name: 0 for name in self.class_names.values()}
+        for pred in predictions:
+            class_name = pred.get('class_name', 'Unknown')
+            counts[class_name] = counts.get(class_name, 0) + 1
+        return counts
     
     def extract_random_frames(self, video_path: str, num_frames: int = 100, frames_per_group: int = 10) -> list:
         """
@@ -166,10 +210,11 @@ class VideoPredictor:
                 x1, y1, x2, y2 = boxes.xyxy[i].cpu().numpy()
                 confidence = boxes.conf[i].cpu().numpy()
                 class_id = int(boxes.cls[i].cpu().numpy())
-                
+                class_name = self.class_names.get(class_id, f"Class {class_id}")
+
                 after_predictions.append({
                     'class_id': class_id,
-                    'class_name': self.class_names[class_id],
+                    'class_name': class_name,
                     'confidence': confidence,
                     'bbox': (int(x1), int(y1), int(x2), int(y2))
                 })
@@ -193,7 +238,7 @@ class VideoPredictor:
             x1, y1, x2, y2 = pred['bbox']
             class_name = pred['class_name']
             confidence = pred['confidence']
-            color = self.class_colors[pred['class_id']]
+            color = self.class_colors.get(pred['class_id'], (255, 255, 0))
             
             # Draw bounding box
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
@@ -251,22 +296,36 @@ class VideoPredictor:
                 axes = axes.reshape(1, -1)
             
             # Statistics
-            before_stats = {'Player': 0, 'Ball': 0}
-            after_stats = {'Player': 0, 'Ball': 0}
+            before_stats = {name: 0 for name in self.class_names.values()}
+            after_stats = {name: 0 for name in self.class_names.values()}
+            class_order = list(self.class_names.values())
             
             for frame_idx, (frame_num, original_frame, before_preds, before_frame, after_preds, after_frame) in enumerate(group_frames):
-                
+                before_counts = self._count_predictions_by_class(before_preds)
+                after_counts = self._count_predictions_by_class(after_preds)
+
+                for name in before_counts:
+                    if name not in class_order:
+                        class_order.append(name)
+                for name in after_counts:
+                    if name not in class_order:
+                        class_order.append(name)
+
+                for name, count in before_counts.items():
+                    before_stats[name] = before_stats.get(name, 0) + count
+                for name, count in after_counts.items():
+                    after_stats[name] = after_stats.get(name, 0) + count
+
+                before_title_parts = [f"{name}: {count}" for name, count in before_counts.items() if count > 0]
+                after_title_parts = [f"{name}: {count}" for name, count in after_counts.items() if count > 0]
+                before_title = " | ".join(before_title_parts) if before_title_parts else "No detections"
+                after_title = " | ".join(after_title_parts) if after_title_parts else "No detections"
+
                 # BEFORE (left column)
                 ax_before = axes[frame_idx, 0]
                 rgb_before = cv2.cvtColor(before_frame, cv2.COLOR_BGR2RGB)
                 ax_before.imshow(rgb_before)
-                
-                before_player_count = sum(1 for p in before_preds if p['class_name'] == 'Player')
-                before_ball_count = sum(1 for p in before_preds if p['class_name'] == 'Ball')
-                before_stats['Player'] += before_player_count
-                before_stats['Ball'] += before_ball_count
-                
-                ax_before.set_title(f'BEFORE (Frame {frame_num})\nPlayers: {before_player_count} | Balls: {before_ball_count}', 
+                ax_before.set_title(f'BEFORE (Frame {frame_num})\n{before_title}', 
                                   fontweight='bold', color='red')
                 ax_before.axis('off')
                 
@@ -274,18 +333,12 @@ class VideoPredictor:
                 ax_after = axes[frame_idx, 1]
                 rgb_after = cv2.cvtColor(after_frame, cv2.COLOR_BGR2RGB)
                 ax_after.imshow(rgb_after)
-                
-                after_player_count = sum(1 for p in after_preds if p['class_name'] == 'Player')
-                after_ball_count = sum(1 for p in after_preds if p['class_name'] == 'Ball')
-                after_stats['Player'] += after_player_count
-                after_stats['Ball'] += after_ball_count
-                
-                ax_after.set_title(f'AFTER (Frame {frame_num})\nPlayers: {after_player_count} | Balls: {after_ball_count}', 
+                ax_after.set_title(f'AFTER (Frame {frame_num})\n{after_title}', 
                                  fontweight='bold', color='green')
                 ax_after.axis('off')
                 
                 # Add comparison indicators
-                if after_ball_count > before_ball_count:
+                if after_counts.get('Ball', 0) > before_counts.get('Ball', 0):
                     ax_after.text(0.02, 0.98, '🎯 NEW BALL DETECTED!', 
                                 transform=ax_after.transAxes, fontsize=12, 
                                 verticalalignment='top', fontweight='bold',
@@ -301,11 +354,22 @@ class VideoPredictor:
             start_frame = group_frames[0][0] if group_frames else 0
             end_frame = group_frames[-1][0] if group_frames else 0
             
+            summary_order = list(class_order)
+            summary_before = " | ".join(
+                f"{name}: {before_stats.get(name, 0)}" for name in summary_order
+            )
+            summary_after = " | ".join(
+                f"{name}: {after_stats.get(name, 0)}" for name in summary_order
+            )
+            summary_improvement = " | ".join(
+                f"{name}: {after_stats.get(name, 0) - before_stats.get(name, 0):+d}" for name in summary_order
+            )
+
             summary_text = f"""
 📊 GROUP {group_idx + 1} ANALYSIS (Frames {start_frame}-{end_frame})
-🔴 BEFORE: Players: {before_stats['Player']} | Balls: {before_stats['Ball']}
-🟢 AFTER:  Players: {after_stats['Player']} | Balls: {after_stats['Ball']}
-📈 IMPROVEMENT: +{after_stats['Player'] - before_stats['Player']} Players | +{after_stats['Ball'] - before_stats['Ball']} Balls
+🔴 BEFORE: {summary_before}
+🟢 AFTER:  {summary_after}
+📈 IMPROVEMENT: {summary_improvement}
             """
             
             fig.text(0.02, 0.02, summary_text.strip(),
@@ -362,8 +426,10 @@ class VideoPredictor:
         logger.info(f"🔍 Processing {len(frame_groups)} groups for BEFORE/AFTER comparison...")
         
         frame_groups_with_predictions = []
-        before_stats = {'Player': 0, 'Ball': 0}
-        after_stats = {'Player': 0, 'Ball': 0}
+        base_class_names = list(self.class_names.values())
+        before_stats = {name: 0 for name in base_class_names}
+        after_stats = {name: 0 for name in base_class_names}
+        dynamic_class_order = list(base_class_names)
         total_frames_processed = 0
         
         for group_idx, group_frames in enumerate(frame_groups):
@@ -375,10 +441,20 @@ class VideoPredictor:
                 before_preds, before_frame, after_preds, after_frame = self.predict_frame_comparison(frame)
                 
                 # Update statistics
-                for pred in before_preds:
-                    before_stats[pred['class_name']] += 1
-                for pred in after_preds:
-                    after_stats[pred['class_name']] += 1
+                before_counts = self._count_predictions_by_class(before_preds)
+                after_counts = self._count_predictions_by_class(after_preds)
+
+                for name in before_counts:
+                    if name not in dynamic_class_order:
+                        dynamic_class_order.append(name)
+                for name in after_counts:
+                    if name not in dynamic_class_order:
+                        dynamic_class_order.append(name)
+
+                for name, count in before_counts.items():
+                    before_stats[name] = before_stats.get(name, 0) + count
+                for name, count in after_counts.items():
+                    after_stats[name] = after_stats.get(name, 0) + count
                 
                 group_with_predictions.append((frame_num, frame, before_preds, before_frame, after_preds, after_frame))
                 total_frames_processed += 1
@@ -397,9 +473,10 @@ class VideoPredictor:
             'before_predictions': before_stats,
             'after_predictions': after_stats,
             'improvement': {
-                'Player': after_stats['Player'] - before_stats['Player'],
-                'Ball': after_stats['Ball'] - before_stats['Ball']
+                name: after_stats.get(name, 0) - before_stats.get(name, 0)
+                for name in dynamic_class_order
             },
+            'class_names': {class_id: name for class_id, name in self.class_names.items()},
             'processing_time': processing_time,
             'avg_time_per_frame': avg_time_per_frame,
             'frame_groups_with_predictions': frame_groups_with_predictions
@@ -410,9 +487,15 @@ class VideoPredictor:
         logger.info(f"   Groups processed: {len(frame_groups)}")
         logger.info(f"   Frames per group: {frames_per_group}")
         logger.info(f"   Total frames processed: {total_frames_processed}")
-        logger.info(f"   🔴 BEFORE - Players: {before_stats['Player']} | Balls: {before_stats['Ball']}")
-        logger.info(f"   🟢 AFTER  - Players: {after_stats['Player']} | Balls: {after_stats['Ball']}")
-        logger.info(f"   📈 IMPROVEMENT - Players: +{results['improvement']['Player']} | Balls: +{results['improvement']['Ball']}")
+        stats_order = dynamic_class_order
+        before_summary = " | ".join(f"{name}: {before_stats.get(name, 0)}" for name in stats_order)
+        after_summary = " | ".join(f"{name}: {after_stats.get(name, 0)}" for name in stats_order)
+        improvement_summary = " | ".join(
+            f"{name}: {results['improvement'].get(name, 0):+d}" for name in stats_order
+        )
+        logger.info(f"   � BEFORE - {before_summary}")
+        logger.info(f"   🟢 AFTER  - {after_summary}")
+        logger.info(f"   📈 IMPROVEMENT - {improvement_summary}")
         logger.info(f"   Processing time: {processing_time:.2f} seconds")
         logger.info(f"   Average time per frame: {avg_time_per_frame:.2f} seconds")
         

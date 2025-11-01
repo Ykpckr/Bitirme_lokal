@@ -1,7 +1,7 @@
 # Path Configuration
 # All paths can be absolute or relative to workspace root
 
-workspace_root: "/home/alperen/fomac/FoMAC/model-training/ball-detection"
+workspace_root: "C:/Users/Admin/Desktop/bitirme/FoMACBitirme/model-training/ball-detection"
 ballDataset_root: "ballDataset"
 soccernet_root: "soccerNet"  # Keep for compatibility
 output_root: "ballDataset"  # Use the existing prepared dataset
