@@ -418,6 +418,7 @@ FodyWeavers.xsd
 *.msp
 
 .venv/
-.runs/
+runs/
 model-training/player-detection/__pycache__/
 model-training/player-detection/.venv/
+model-training/player-detection/snmot_viz/
