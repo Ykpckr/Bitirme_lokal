@@ -101,8 +101,18 @@ python two_phase_training.py --train-only
 
 Behind the scenes the extractor applies per-phase label remapping rules (`label_transform`) so you automatically get:
 
-- Phase 1 dataset @ `/mnt/sasarchiveir/Intern/Eray/datasets/snmot_detection_phase1`
-- Phase 2 dataset @ `/mnt/sasarchiveir/Intern/Eray/datasets/snmot_detection_phase2`
+- Phase 1 dataset @ `data/yolo_players_snmot/phase1`
+- Phase 2 dataset @ `data/yolo_players_snmot/phase2`
+
+Use the helper `scripts/extract_dual_phase_snmot.py` to (re)build the datasets from raw SNMOT tracking folders. It merges the base configs with `configs/snmot_dual_phase.yaml`, letting you override paths or run only one phase.
+
+```bash
+# Example: rebuild both datasets with custom SNMOT root
+python scripts/extract_dual_phase_snmot.py --snmot-root c:/data/tracking
+
+# Only regenerate the coarse labels
+python scripts/extract_dual_phase_snmot.py --phases phase1_coarse
+```
 
 Feel free to open the phase-specific YAML files to tweak sampling or YOLO hyperparameters before rerunning the helper script.
 

@@ -1,4 +1,4 @@
-# Phase 2 YOLO params (fine-tune phase 1 best weights for 'other' class only)
+# Phase 2 YOLO params (fine-tune phase 1 weights for goalkeepers/referees/ball)
 model: "models/football_detector_phase1/weights/best.pt"
 imgsz: 960
 batch: 28
@@ -52,4 +52,4 @@ exist_ok: true
 save: true
 
 freeze:
-	- 0
+  - 0
