@@ -1,11 +1,11 @@
 task: detect
 mode: train
-model: yolo11m.pt
-data: /mnt/sasarchiveir/Intern/Eray/datasets/snmot_detection_phase1/dataset.yaml
+model: yolo11n.pt
+data: C:\datasets\snmot_detection_phase1\dataset.yaml
 epochs: 200
 time: null
 patience: 30
-batch: 24
+batch: 28
 imgsz: 1024
 save: true
 save_period: 5
@@ -103,4 +103,4 @@ auto_augment: false
 erasing: 0.05
 cfg: null
 tracker: botsort.yaml
-save_dir: /home/airborne/Desktop/eray/FoMAC/model-training/player-detection/models/football_detector_phase1
+save_dir: C:\Users\Admin\Desktop\dualPhase\FoMAC\model-training\player-detection\models\football_detector_phase1

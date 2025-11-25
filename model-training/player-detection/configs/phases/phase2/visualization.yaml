@@ -1,0 +1,11 @@
+# Visualization configuration for Phase 2
+
+tensorboard:
+  enabled: true          # Launch TensorBoard automatically for phase 2 runs
+  logdir: "models"       # Directory containing YOLO training runs
+  host: "127.0.0.1"
+  port: 6007
+  auto_port: true        # Automatically try alternate ports if busy
+  port_search: 20        # Number of alternate ports to probe (phase 2)
+  open_browser: true     # Auto-open default browser to the dashboard
+  keep_alive: true       # Keep server alive after pipeline exits

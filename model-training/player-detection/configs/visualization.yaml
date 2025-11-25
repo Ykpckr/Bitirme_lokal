@@ -1,9 +1,11 @@
 # Visualization configuration
 
 tensorboard:
-  enabled: false          # Set true to launch TensorBoard automatically
+  enabled: true          # Set true to launch TensorBoard automatically
   logdir: "models"       # Directory containing YOLO training runs
   host: "127.0.0.1"
   port: 6006
-  open_browser: false     # Auto-open default browser to the dashboard
-  keep_alive: false       # Keep server alive after pipeline exits
+  auto_port: true        # If true, automatically try next ports when busy
+  port_search: 20        # How many additional ports to probe when auto_port is true
+  open_browser: true     # Auto-open default browser to the dashboard
+  keep_alive: true       # Keep server alive after pipeline exits

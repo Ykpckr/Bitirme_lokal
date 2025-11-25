@@ -32,6 +32,7 @@ if str(PROJECT_ROOT) not in sys.path:
 # Module imports
 from modules import create_device_manager, create_extractor, create_trainer
 from utils import ConfigManager, setup_logging, validate_configurations
+from utils.tensorboard_server import TensorBoardServer
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,8 @@ class YOLOTrainingPipeline:
         self.device_manager = None
         self.extractor = None
         self.trainer = None
+        self.tensorboard_server = None
+        self._tensorboard_keep_alive = False
         
     def run(self, args=None):
         """
@@ -86,6 +89,8 @@ class YOLOTrainingPipeline:
         except Exception as e:
             logger.error(f"Pipeline failed: {e}", exc_info=True)
             sys.exit(1)
+        finally:
+            self._shutdown_tensorboard()
     
     def _load_configurations(self, args):
         """Load and validate all configurations."""
@@ -170,9 +175,17 @@ class YOLOTrainingPipeline:
         # Initialize trainer
         yolo_config = self.configs.get('yolo_params', {})
         amp_enabled = self.device_manager.amp_enabled
-        self.trainer = create_trainer(yolo_config, paths_config, device, amp_enabled)
+        visualization_config = self.configs.get('visualization', {})
+        self.trainer = create_trainer(
+            yolo_config,
+            paths_config,
+            device,
+            amp_enabled,
+            visualization_config,
+        )
         
         logger.info("✅ Components initialized")
+        self._maybe_start_tensorboard()
     
     def _execute_pipeline(self, args):
         """Execute the pipeline based on command line arguments."""
@@ -283,6 +296,60 @@ class YOLOTrainingPipeline:
         # Run prediction
         results = self.trainer.predict(source, model_path)
         logger.info("✅ Inference completed")
+
+    def _maybe_start_tensorboard(self):
+        """Launch TensorBoard server if visualization config enables it."""
+        viz_cfg = self.configs.get('visualization', {}).get('tensorboard', {}) or {}
+        if not viz_cfg.get('enabled'):
+            return
+
+        workspace_root = Path(self.configs['paths']['workspace_root']).expanduser()
+        logdir_setting = viz_cfg.get('logdir') or self.configs['paths'].get('models_root', 'models')
+        logdir_path = Path(logdir_setting)
+        if not logdir_path.is_absolute():
+            logdir_path = workspace_root / logdir_path
+
+        host = viz_cfg.get('host', '127.0.0.1')
+        port = int(viz_cfg.get('port', 6006))
+        open_browser = bool(viz_cfg.get('open_browser', False))
+        self._tensorboard_keep_alive = bool(viz_cfg.get('keep_alive', False))
+        auto_port = bool(viz_cfg.get('auto_port', True))
+        port_search = int(viz_cfg.get('port_search', 10))
+
+        try:
+            self.tensorboard_server = TensorBoardServer(
+                logdir=logdir_path,
+                host=host,
+                port=port,
+                open_browser=open_browser,
+                auto_port=auto_port,
+                port_search=port_search,
+            )
+            self.tensorboard_server.start()
+            logger.info("TensorBoard running at %s", self.tensorboard_server.url)
+        except Exception as exc:
+            self.tensorboard_server = None
+            logger.warning("Failed to start TensorBoard: %s", exc)
+
+    def _shutdown_tensorboard(self):
+        """Stop TensorBoard unless keep_alive requests a persistent server."""
+        if not self.tensorboard_server:
+            return
+
+        if self._tensorboard_keep_alive:
+            logger.info(
+                "TensorBoard kept alive at %s (keep_alive=true)",
+                self.tensorboard_server.url,
+            )
+            return
+
+        try:
+            self.tensorboard_server.stop()
+            logger.info("TensorBoard server stopped")
+        except Exception as exc:
+            logger.debug("Error stopping TensorBoard: %s", exc)
+        finally:
+            self.tensorboard_server = None
 
 
 def main():

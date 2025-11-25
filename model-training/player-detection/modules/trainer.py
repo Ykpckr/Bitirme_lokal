@@ -4,6 +4,8 @@ Training Module
 Handles YOLO model training with configuration-driven parameters.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Dict, Any, Optional
 import logging
@@ -17,6 +19,11 @@ try:
 except Exception:
     ClasswiseReporter = None
 
+try:
+    from utils.tensorboard_logger import YOLOTensorBoardLogger
+except Exception:  # pragma: no cover - defensive
+    YOLOTensorBoardLogger = None  # type: ignore
+
 
 class YOLOTrainer:
     """Handles YOLO model training."""
@@ -26,7 +33,8 @@ class YOLOTrainer:
         yolo_config: Dict[str, Any],
         paths_config: Dict[str, Any],
         device: str,
-        amp_enabled: bool = True
+        amp_enabled: bool = True,
+        visualization_config: Optional[Dict[str, Any]] = None,
     ):
         """
         Initialize YOLO trainer.
@@ -36,12 +44,15 @@ class YOLOTrainer:
             paths_config: Path configuration
             device: Training device ('cuda:0', 'dml', 'cpu')
             amp_enabled: Whether to enable automatic mixed precision
+            visualization_config: Visualization/tensorboard configuration block
         """
         self.yolo_config = yolo_config.copy()
         self.paths_config = paths_config
         self.device = device
         self.amp_enabled = amp_enabled
         self.model = None
+        self.visualization_config = visualization_config or {}
+        self.tensorboard_logger = None
         
     def train(self, dataset_yaml_path: Path) -> Optional[Path]:
         """
@@ -64,6 +75,12 @@ class YOLOTrainer:
         # Create model
         model_arch = training_config.pop("model")
         self.model = YOLO(model_arch)
+
+        tensorboard_logger = self._create_tensorboard_logger()
+        if tensorboard_logger is not None:
+            tensorboard_logger.attach(self.model)
+        self.tensorboard_logger = tensorboard_logger
+
         # Optionally start classwise reporter to watch training outputs
         reporter = None
         try:
@@ -94,29 +111,25 @@ class YOLOTrainer:
                 logger.warning(f"Failed to generate reports: {report_error}")
             
             if best_model_path.exists():
-                if reporter is not None:
-                    try:
-                        reporter.stop()
-                    except Exception:
-                        pass
                 return best_model_path
             else:
                 logger.warning("Best model not found at expected location")
-                if reporter is not None:
-                    try:
-                        reporter.stop()
-                    except Exception:
-                        pass
                 return None
                 
         except Exception as e:
             logger.error(f"❌ Training failed: {e}")
+            raise
+        finally:
             if reporter is not None:
                 try:
                     reporter.stop()
                 except Exception:
                     pass
-            raise
+            if self.tensorboard_logger is not None:
+                try:
+                    self.tensorboard_logger.close()
+                except Exception:
+                    logger.debug("Failed to close TensorBoard logger cleanly")
     
     def _prepare_training_config(self, dataset_yaml_path: Path) -> Dict[str, Any]:
         """Prepare training configuration dictionary."""
@@ -178,6 +191,34 @@ class YOLOTrainer:
                 logger.info(f"  {param:15s}: {value}")
         
         logger.info("=" * 60)
+
+    def _create_tensorboard_logger(self) -> Optional[Any]:
+        """Initialize TensorBoard logger if visualization config enables it."""
+        if YOLOTensorBoardLogger is None:
+            return None
+
+        tensorboard_cfg = (self.visualization_config or {}).get('tensorboard', {}) or {}
+        enabled = bool(tensorboard_cfg.get('enabled'))
+        if not enabled:
+            return None
+
+        workspace_root = Path(self.paths_config['workspace_root']).expanduser()
+        logdir_setting = tensorboard_cfg.get('logdir') or self.paths_config.get('models_root', 'models')
+        logdir_path = Path(logdir_setting)
+        if not logdir_path.is_absolute():
+            logdir_path = workspace_root / logdir_path
+
+        try:
+            return YOLOTensorBoardLogger(
+                enabled=enabled,
+                logdir_path=logdir_path,
+                models_root=self._get_models_root(),
+                project_name=self.yolo_config.get('project_name', 'football_detector'),
+                hparams=self.yolo_config,
+            )
+        except Exception as exc:
+            logger.warning("Failed to set up TensorBoard logger: %s", exc)
+            return None
     
     def get_model(self) -> Optional[YOLO]:
         """Get the trained model instance."""
@@ -378,7 +419,8 @@ def create_trainer(
     yolo_config: Dict[str, Any],
     paths_config: Dict[str, Any],
     device: str,
-    amp_enabled: bool = True
+    amp_enabled: bool = True,
+    visualization_config: Optional[Dict[str, Any]] = None,
 ) -> YOLOTrainer:
     """
     Factory function to create a YOLO trainer.
@@ -392,4 +434,4 @@ def create_trainer(
     Returns:
         Configured YOLOTrainer instance
     """
-    return YOLOTrainer(yolo_config, paths_config, device, amp_enabled)
+    return YOLOTrainer(yolo_config, paths_config, device, amp_enabled, visualization_config)

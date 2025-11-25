@@ -17,36 +17,37 @@ class ConfigManager:
     """Manages configuration loading and CLI argument integration."""
     
     def __init__(self, config_dir: Optional[Path] = None):
-        """
-        Initialize configuration manager.
-        
-        Args:
-            config_dir: Directory containing configuration files
-        """
+        """Initialize configuration manager."""
+        self._default_config_dir = Path(__file__).parent.parent / "configs"
         if config_dir is None:
-            # Default to configs directory relative to this file
-            config_dir = Path(__file__).parent.parent / "configs"
-        
-        self.config_dir = Path(config_dir)
+            self.config_dir = self._default_config_dir
+        else:
+            self.config_dir = Path(config_dir)
+
+        self._fallback_dirs: List[Path] = []
+        if self.config_dir != self._default_config_dir:
+            self._fallback_dirs.append(self._default_config_dir)
+
         self._configs = {}
         
     def load_config(self, config_name: str) -> Dict[str, Any]:
-        """
-        Load a configuration file.
-        
-        Args:
-            config_name: Name of config file (without .yaml extension)
-            
-        Returns:
-            Configuration dictionary
-        """
+        """Load a configuration file with fallback to the default directory."""
         if config_name in self._configs:
             return self._configs[config_name].copy()
-        
-        config_path = self.config_dir / f"{config_name}.yaml"
-        
-        if not config_path.exists():
-            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+
+        search_dirs = [self.config_dir, *self._fallback_dirs]
+        config_path: Optional[Path] = None
+        for directory in search_dirs:
+            candidate = directory / f"{config_name}.yaml"
+            if candidate.exists():
+                config_path = candidate
+                break
+
+        if config_path is None:
+            raise FileNotFoundError(
+                "Configuration file not found in any search directory: "
+                f"{[str(d) for d in search_dirs]} / {config_name}.yaml"
+            )
         
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -154,9 +155,9 @@ class ConfigManager:
         training_group.add_argument('--device', help='Training device (cuda:0, dml, cpu)')
         training_group.add_argument(
             '--project-name',
-            help='Training project name'
+            help='Training project name (overrides yolo_params.project_name)'
         )
-
+        
         # Visualization options
         viz_group = parser.add_argument_group('Visualization')
         viz_group.add_argument(
@@ -279,8 +280,9 @@ class ConfigManager:
             merged['yolo_params']['imgsz'] = args.imgsz
         if args.lr0 is not None:
             merged['yolo_params']['lr0'] = args.lr0
-        if args.project_name:
-            merged['yolo_params']['project_name'] = args.project_name
+        project_name = getattr(args, 'project_name', None)
+        if project_name:
+            merged['yolo_params']['project_name'] = project_name
 
         # Visualization overrides
         viz_cfg = merged.setdefault('visualization', {}).setdefault('tensorboard', {})
