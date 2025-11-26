@@ -12,7 +12,6 @@ import shutil
 import configparser
 import random
 from collections import defaultdict
-from fnmatch import fnmatch
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple, Set
 
@@ -52,8 +51,7 @@ class DatasetExtractor:
         self._instance_caps_cfg = snmot_cfg.get('instance_caps', {})
         self._instance_caps_state: Dict[str, Dict[str, int]]
         self._instance_caps_state = defaultdict(dict)
-    self._label_transform_cfg = snmot_cfg.get('label_transform') or {}
-    self._dropped_class_counts = defaultdict(int)
+        self._label_transform_cfg = snmot_cfg.get('label_transform') or {}
         
     def extract_dataset(self) -> Path:
         """
@@ -382,19 +380,6 @@ class DatasetExtractor:
                     stats['frames'],
                     stats['labels']
                 )
-
-        if self._dropped_class_counts:
-            ordered = sorted(
-                self._dropped_class_counts.items(),
-                key=lambda item: item[1],
-                reverse=True
-            )
-            preview = ", ".join(
-                f"{name} ({count})" for name, count in ordered[:10]
-            )
-            logger.info("Dropped class labels due to filtering: %s", preview)
-            if len(ordered) > 10:
-                logger.info("Total dropped class labels: %d", len(ordered))
 
         return output_root
 
@@ -791,16 +776,6 @@ class DatasetExtractor:
                 break
 
         if new_name is None:
-            pattern_groups = cfg.get('pattern_groups') or {}
-            for target_name, pattern_list in pattern_groups.items():
-                for pattern in pattern_list or []:
-                    if fnmatch(original_name, pattern):
-                        new_name = target_name
-                        break
-                if new_name is not None:
-                    break
-
-        if new_name is None:
             rename_map = cfg.get('rename') or {}
             if original_name in rename_map:
                 new_name = rename_map[original_name]
@@ -810,7 +785,6 @@ class DatasetExtractor:
             if default_group and groups:
                 new_name = default_group
             elif cfg.get('drop_unmatched'):
-                self._register_dropped_class(original_name)
                 return None
             else:
                 new_name = original_name
@@ -819,18 +793,13 @@ class DatasetExtractor:
         if include_names:
             include_set = set(include_names)
             if new_name not in include_set:
-                self._register_dropped_class(original_name)
                 return None
 
         exclude_names = cfg.get('exclude')
         if exclude_names and new_name in set(exclude_names):
-            self._register_dropped_class(original_name)
             return None
 
         return new_name
-
-    def _register_dropped_class(self, class_name: str):
-        self._dropped_class_counts[class_name] += 1
 
     def _write_yolo_label_file(
         self,

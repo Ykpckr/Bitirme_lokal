@@ -1,4 +1,4 @@
-# Phase 1 YOLO params (team_left vs team_right vs ball) tuned for higher mAP
+# Phase 1 YOLO params (players vs other) tuned for higher mAP
 model: "yolo11n.pt"
 imgsz: 1024
 batch: 28

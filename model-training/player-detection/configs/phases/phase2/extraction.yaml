@@ -1,4 +1,4 @@
-# Phase 2 Extraction Configuration (fine-grained classes)
+# Phase 2 Extraction Configuration (specialist for former "other" classes)
 
 dataset_type: "snmot"
 run_extraction: true
@@ -10,19 +10,12 @@ snmot:
   min_confidence: 0.2
   clamp_boxes: true
   balance_frames:
-    enabled: true
-    majority_classes:
-      - team_left_player
-      - team_right_player
-    minority_classes:
-      - goalkeeper_team_left
-      - goalkeeper_team_right
-      - referee_main
-      - referee_side
-      - ball
-    majority_keep_prob: 0.4
-    empty_keep_prob: 0.3
-    duplicate_minority: 1
+    enabled: false
+    majority_classes: []
+    minority_classes: []
+    majority_keep_prob: 1.0
+    empty_keep_prob: 0.5
+    duplicate_minority: 0
     instance_caps:
       enabled: false
       target_splits: ["train"]
@@ -33,60 +26,28 @@ snmot:
   label_transform:
     enabled: true
     groups:
-      team_left_player:
-        - player_team_left
-      team_right_player:
-        - player_team_right
-      goalkeeper_team_left:
-        - goalkeeper_team_left
-        - goalkeeper_captain_team_left
-      goalkeeper_team_right:
-        - goalkeeper_team_right
-        - goalkeeper_captain_team_right
-      referee_main:
+      other:
+        - ball
         - referee_main
-        - referee_central
-      referee_side:
         - referee_side_top
         - referee_side_bottom
-        - referee_side_left
-        - referee_side_right
-        - referee_side
-        - referee_assistant
-        - referee_assistant_left
-        - referee_assistant_right
-        - referee_assistant_top
-        - referee_assistant_bottom
-        - referee_fourth
-      ball:
-        - ball
-    pattern_groups:
-      referee_side:
-        - "referee_side_*"
-        - "referee_assistant_*"
-    include:
-      - team_left_player
-      - team_right_player
-      - goalkeeper_team_left
-      - goalkeeper_team_right
-      - referee_main
-      - referee_side
-      - ball
+        - goalkeeper_team_left
+        - goalkeeper_team_right
+        - other
+    default_group: null
     drop_unmatched: true
-    exclude: []
+    include:
+      - other
+    exclude:
+      - player_team_left
+      - player_team_right
     rename: {}
 
 max_samples_per_half: null
 min_box_size: 4
 
 class_names:
-  - team_left_player
-  - team_right_player
-  - goalkeeper_team_left
-  - goalkeeper_team_right
-  - referee_main
-  - referee_side
-  - ball
+  - other
 
 season_splits:
   train: ["2014-2015"]

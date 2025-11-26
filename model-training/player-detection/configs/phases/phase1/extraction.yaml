@@ -4,8 +4,8 @@
 dataset_type: "snmot"
 
 # Extraction control
-run_extraction: true
-clean_output: true
+run_extraction: false
+clean_output: false
 
 # SNMOT-specific settings
 snmot:
@@ -16,10 +16,15 @@ snmot:
   balance_frames:
     enabled: true
     majority_classes:
-      - team_left
-      - team_right
+      - player_team_left
+      - player_team_right
     minority_classes:
       - ball
+      - referee_main
+      - referee_side_top
+      - referee_side_bottom
+      - goalkeeper_team_left
+      - goalkeeper_team_right
     majority_keep_prob: 0.35
     empty_keep_prob: 0.3
     duplicate_minority: 1
@@ -33,24 +38,15 @@ snmot:
   label_transform:
     enabled: true
     groups:
-      team_left:
+      player_team_left:
         - player_team_left
-        - goalkeeper_team_left
-        - goalkeeper_captain_team_left
-      team_right:
+      player_team_right:
         - player_team_right
-        - goalkeeper_team_right
-        - goalkeeper_captain_team_right
-      ball:
-        - ball
-    include:
-      - team_left
-      - team_right
-      - ball
-    drop_unmatched: true
+    default_group: other
+    drop_unmatched: false
+    include: []
     exclude: []
     rename: {}
-    pattern_groups: {}
 
 # Sampling settings
 max_samples_per_half: null
@@ -58,9 +54,9 @@ min_box_size: 4
 
 # Class configuration
 class_names:
-  - team_left
-  - team_right
-  - ball
+  - player_team_left
+  - player_team_right
+  - other
 
 # Season splits (legacy)
 season_splits:
