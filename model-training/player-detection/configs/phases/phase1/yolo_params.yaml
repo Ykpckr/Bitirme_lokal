@@ -1,7 +1,7 @@
 # Phase 1 YOLO params (players vs other) tuned for higher mAP
-model: "yolo11n.pt"
+model: "yolo11m.pt"
 imgsz: 1024
-batch: 28
+batch: 24
 rect: false
 multi_scale: false
 resume: false

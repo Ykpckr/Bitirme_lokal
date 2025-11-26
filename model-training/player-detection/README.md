@@ -184,15 +184,6 @@ device_priority:
 - **File logging** support
 - **Progress tracking** with detailed status updates
 - **Error handling** with graceful fallbacks
-- **TensorBoard auto-port fallback** so dashboards still launch even when the default port is busy (tune via `visualization.tensorboard.auto_port` / `port_search`)
-- **TensorBoard warning filter** that downgrades known benign messages (e.g., `pkg_resources` deprecation, missing TensorFlow) from ERROR to WARN, keeping logs meaningful while still surfacing real failures
-
-### 📉 TensorBoard Logging
-
-- Enable `visualization.tensorboard.enabled` (the default config already does) to let the trainer emit TensorBoard event files alongside YOLO checkpoints under `<models_root>/<project>/<run>/tensorboard/`.
-- The same configuration block controls the embedded TensorBoard server, so running `main.py` or `two_phase_training.py` automatically starts a server that watches the log directory (unless you disable it).
-- Metrics exposed by Ultralytics (precision, recall, mAP, loss components, learning rate, etc.) are pushed every epoch, making it easy to compare Phase 1 vs Phase 2 runs from the same dashboard.
-- If you prefer manual control, run `python -m tensorboard.main --logdir=models` from the project root and point your browser to the printed URL.
 
 ## 🔄 Migration from Original Code
 

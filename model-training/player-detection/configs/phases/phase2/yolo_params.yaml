@@ -1,7 +1,7 @@
 # Phase 2 YOLO params (fine-tune phase 1 best weights for 'other' class only)
 model: "models/football_detector_phase1/weights/best.pt"
 imgsz: 960
-batch: 28
+batch: 24
 rect: false
 multi_scale: false
 resume: false
