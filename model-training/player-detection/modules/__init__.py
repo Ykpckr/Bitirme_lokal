@@ -11,6 +11,7 @@ __author__ = "YOLO Training Pipeline"
 from .device_manager import DeviceManager, create_device_manager
 from .dataset_extractor import DatasetExtractor, create_extractor
 from .trainer import YOLOTrainer, create_trainer
+from .team_assigner import TeamAssigner, DetectionObservation, AssignedTeam
 
 __all__ = [
     'DeviceManager',
@@ -18,5 +19,8 @@ __all__ = [
     'DatasetExtractor', 
     'create_extractor',
     'YOLOTrainer',
-    'create_trainer'
+    'create_trainer',
+    'TeamAssigner',
+    'DetectionObservation',
+    'AssignedTeam',
 ]

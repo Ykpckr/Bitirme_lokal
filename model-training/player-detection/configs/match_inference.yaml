@@ -1,0 +1,50 @@
+# Configuration for match_inference.py
+video_path: "data/match_sample.mkv"
+output_dir: "outputs/match_sample"
+
+model:
+  weights: "models/football_detector_optimized/weights/best.pt"
+  device: "cuda:0"
+  imgsz: 960
+  conf: 0.15
+  iou: 0.5
+  vid_stride: 1
+
+tracker:
+  config: "bytetrack.yaml"
+  overrides:
+    persist: true
+
+teams:
+  home:
+    name: "Home FC"
+    color_hint_rgb: [210, 50, 50]
+  away:
+    name: "Away FC"
+    color_hint_rgb: [40, 120, 220]
+
+team_assignment:
+  warmup_min_observations: 200
+  warmup_max_observations: 400
+  upper_body_ratio: 0.6
+  hist_bins: [24, 6, 3]
+  smoothing_window: 5
+  min_track_votes: 3
+  confidence_decay: 1.5
+  random_state: 42
+
+classes:
+  team_assign:
+    - player
+    - goalkeeper
+
+processing:
+  max_frames: null
+
+outputs:
+  save_frame_records: false
+
+render:
+  enabled: true
+  filename: "annotated.mp4"
+  fps: 25.0

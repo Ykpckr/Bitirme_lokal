@@ -16,15 +16,11 @@ snmot:
   balance_frames:
     enabled: true
     majority_classes:          # Frames containing only these classes can be subsampled
-      - player_team_left
-      - player_team_right
+      - player
     minority_classes:          # Always keep + optionally duplicate frames containing these
       - ball
-      - referee_main
-      - referee_side_top
-      - referee_side_bottom
-      - goalkeeper_team_left
-      - goalkeeper_team_right
+      - referee
+      - goalkeeper
     majority_keep_prob: 0.35   # Keep about 35% of player-only frames
     empty_keep_prob: 0.3       # Retain a third of empty frames for negatives
     duplicate_minority: 1      # Duplicate frames that include minority classes once
@@ -37,9 +33,21 @@ snmot:
       classes: {}
 
   label_transform:
-    enabled: false
-    groups: {}
-    default_group: null
+    enabled: true
+    groups:
+      player:
+        - player_team_left
+        - player_team_right
+      goalkeeper:
+        - goalkeeper_team_left
+        - goalkeeper_team_right
+      referee:
+        - referee_main
+        - referee_side_top
+        - referee_side_bottom
+      ball:
+        - ball
+    default_group: other
     drop_unmatched: false
     include: []
     exclude: []
@@ -56,7 +64,12 @@ frame_shift: 0
 
 # Class configuration
 # Leave empty to auto-detect classes from SNMOT metadata.
-class_names: []
+class_names:
+  - player
+  - goalkeeper
+  - referee
+  - ball
+  - other
 
 # Season splits for train/val/test (SoccerNet only)
 season_splits:

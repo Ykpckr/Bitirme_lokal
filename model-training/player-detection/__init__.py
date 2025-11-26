@@ -10,6 +10,9 @@ __author__ = "YOLO Training Pipeline Team"
 __description__ = "Modular YOLO training pipeline for football player detection"
 
 # Main pipeline class
-from .main import YOLOTrainingPipeline
+try:  # pragma: no cover - import convenience for direct execution contexts
+	from .main import YOLOTrainingPipeline
+except ImportError:  # pragma: no cover
+	from main import YOLOTrainingPipeline
 
 __all__ = ['YOLOTrainingPipeline']

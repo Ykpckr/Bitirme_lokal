@@ -16,15 +16,11 @@ snmot:
   balance_frames:
     enabled: true
     majority_classes:
-      - player_team_left
-      - player_team_right
+      - player
     minority_classes:
       - ball
-      - referee_main
-      - referee_side_top
-      - referee_side_bottom
-      - goalkeeper_team_left
-      - goalkeeper_team_right
+      - referee
+      - goalkeeper
     majority_keep_prob: 0.35
     empty_keep_prob: 0.3
     duplicate_minority: 1
@@ -38,10 +34,18 @@ snmot:
   label_transform:
     enabled: true
     groups:
-      player_team_left:
+      player:
         - player_team_left
-      player_team_right:
         - player_team_right
+      goalkeeper:
+        - goalkeeper_team_left
+        - goalkeeper_team_right
+      referee:
+        - referee_main
+        - referee_side_top
+        - referee_side_bottom
+      ball:
+        - ball
     default_group: other
     drop_unmatched: false
     include: []
@@ -54,8 +58,10 @@ min_box_size: 4
 
 # Class configuration
 class_names:
-  - player_team_left
-  - player_team_right
+  - player
+  - goalkeeper
+  - referee
+  - ball
   - other
 
 # Season splits (legacy)

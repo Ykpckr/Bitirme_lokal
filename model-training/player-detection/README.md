@@ -79,11 +79,41 @@ python main.py --predict /path/to/images_or_video
 python visualize_sequences.py --snmot-root /path/to/snmot --split train --limit 2
 ```
 
+### 🎯 Match Inference & Team Assignment
+
+The new `match_inference.py` script runs the trained YOLO model on `.mkv`
+broadcasts, feeds detections through ByteTrack, and clusters upper-body colors to
+separate home vs. away teams for both `player` and `goalkeeper` classes.
+
+```bash
+python match_inference.py --config configs/match_inference.yaml
+
+# Optional overrides
+python match_inference.py --config configs/match_inference.yaml --video /data/match.mkv --max-frames 500
+```
+
+Key config knobs (`configs/match_inference.yaml`):
+
+- `video_path` / `output_dir`: input MKV and where summaries/annotated MP4 land.
+- `model`: weight path, device, confidence/IoU thresholds, optional image size.
+- `tracker`: ByteTrack/DeepSORT yaml plus extra overrides passed to `YOLO.track`.
+- `teams.home/away`: friendly names plus `color_hint_rgb` used to map clusters.
+- `team_assignment`: HSV histogram bins, warmup window (first 200–400 frames),
+  smoothing window, and RNG seed for reproducibility.
+- `classes.team_assign`: which YOLO classes feed the clustering stage
+  (defaults to `player` and `goalkeeper`).
+- `render` / `outputs`: control annotated video creation and optional
+  `frame_assignments.jsonl` dumping for downstream analytics.
+
+The script emits `team_assignments.json` with per-track metadata (first/last frame
+indices, class name, cluster confidence) along with an annotated MP4 showing the
+resolved home/away colors.
+
 ### 🧪 Two-Phase Training Workflow
 
 Highly imbalanced SNMOT labels can now be tackled with a dual-pass strategy:
 
-1. **Phase 1 — Player-focused:** trains a tri-class detector (`player_team_left`, `player_team_right`, `other`). All non-player entities collapse into the `other` bucket, letting the model specialize on player separation without class imbalance caps.
+1. **Phase 1 — Player-focused:** trains a detector with a unified `player` class (merging the historical `player_team_left/right` tags) while relegating the rest to `goalkeeper`, `referee`, `ball`, or `other`. This keeps the sampling logic simple but still exposes the downstream stack to the full player population for later team-color assignment.
 2. **Phase 2 — "Other" fine-tune:** starts from Phase 1's `best.pt`, re-extracts the dataset with only `other` labels (players removed), and fine-tunes the checkpoint solely on those negatives. The resulting weight specializes in distinguishing anything that's *not* a tracked player, while keeping Phase 1 knowledge intact.
 
 Each phase ships with its own config bundle under `configs/phases/<phaseN>/`. Run them sequentially with the new helper script:

@@ -3,7 +3,8 @@
 
 Given the SNMOT dataset root, this script overlays bounding boxes and class
 names for a couple of sequences so you can sanity-check the labels (e.g.,
-player_team_left vs player_team_right).
+the unified ``player`` class or historical ``player_team_left`` vs
+``player_team_right``.
 """
 
 from __future__ import annotations
@@ -20,13 +21,15 @@ import cv2
 LOGGER = logging.getLogger("snmot.visualize")
 
 COLOR_CYCLE = {
+    # Legacy team-specific labels
     "player_team_left": (0, 255, 0),
     "player_team_right": (0, 0, 255),
     "goalkeeper_team_left": (0, 165, 255),
     "goalkeeper_team_right": (255, 165, 0),
-    "referee_main": (255, 0, 255),
-    "referee_side_top": (255, 255, 0),
-    "referee_side_bottom": (0, 255, 255),
+    # Current unified labels
+    "player": (0, 200, 100),
+    "goalkeeper": (255, 140, 0),
+    "referee": (255, 0, 255),
     "ball": (255, 255, 255),
     "other": (128, 128, 128),
 }
