@@ -18,6 +18,7 @@ class TrackingConfig:
     tracker_yaml: str
     dataset_root: str
     sequence_names: Optional[Sequence[str]] = None
+    split_dirs: Optional[Sequence[str]] = None
     detection_conf: float = 0.3
     detection_iou: float = 0.5
     imgsz: int = 1280
@@ -48,6 +49,7 @@ class TrackingConfig:
             vid_stride=tracking.get("vid_stride", 1),
             dataset_root=datasets["root"],
             sequence_names=datasets.get("sequences"),
+            split_dirs=datasets.get("splits"),
             output_dir=datasets.get("output_dir", "outputs/tracks"),
             limit_frames=datasets.get("limit_frames"),
         )
@@ -60,7 +62,11 @@ class TrackerRunner:
         self.output_dir = Path(cfg.output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.model = YOLO(cfg.detection_weights)
-        self.dataset = SNMOTDataset(Path(cfg.dataset_root), cfg.sequence_names)
+        self.dataset = SNMOTDataset(
+            Path(cfg.dataset_root),
+            cfg.sequence_names,
+            cfg.split_dirs,
+        )
         self.tracker_yaml = self._prepare_tracker_yaml()
 
     def _prepare_tracker_yaml(self) -> Path:

@@ -13,8 +13,10 @@ tracking:
   vid_stride: 1
 
 datasets:
-  root: ..\..\tracking-datasets
-  sequences:
-    - SNMOT-060
+  root: ..\..\git\FoMAC\tracking
+  splits:
+    - train
+    - test
+  sequences: null
   output_dir: outputs/tracks
   limit_frames: null

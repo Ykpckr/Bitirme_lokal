@@ -161,7 +161,12 @@ class SNMOTSequence:
 class SNMOTDataset:
     """Utility to list MOT-style tracking sequences."""
 
-    def __init__(self, root: Path, sequence_names: Optional[Iterable[str]] = None) -> None:
+    def __init__(
+        self,
+        root: Path,
+        sequence_names: Optional[Iterable[str]] = None,
+        split_dirs: Optional[Iterable[str]] = None,
+    ) -> None:
         self.root = Path(root)
         if not self.root.exists():
             raise FileNotFoundError(f"Tracking root does not exist: {self.root}")
@@ -169,7 +174,15 @@ class SNMOTDataset:
         if sequence_names:
             candidates = [self.root / name for name in sequence_names]
         else:
-            candidates = [p for p in self.root.iterdir() if p.is_dir()]
+            candidates = []
+            if split_dirs:
+                for split in split_dirs:
+                    split_path = self.root / split
+                    if not split_path.exists():
+                        continue
+                    candidates.extend(p for p in split_path.iterdir() if p.is_dir())
+            if not candidates:
+                candidates = [p for p in self.root.iterdir() if p.is_dir()]
 
         self.sequences: List[SNMOTSequence] = []
         for seq_dir in candidates:

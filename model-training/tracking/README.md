@@ -29,7 +29,7 @@ Başlıca paketler: `ultralytics`, `torch`, `torchvision`, `opencv-python`, `lap
 
 ### 1. Tracking Dataset (SNMOT / MOT formatı)
 
-1. `c:\Users\kaan.aggunlu\Desktop\git\FoMAC\tracking` dizinindeki her sekansı (örnek: `SNMOT-060`) bu repo içine veya erişilebilir bir noktaya kopyalayın.
+1. Tüm SNMOT sekansları `c:\Users\kaan.aggunlu\Desktop\git\FoMAC\tracking` altında zaten `train/` ve `test/` klasörlerine ayrılmış durumda (örnek: `train/SNMOT-060`, `test/SNMOT-197`).
 2. Her sekans aşağıdaki yapıya sahip olmalıdır:
    ```
    SNMOT-060/
@@ -39,9 +39,10 @@ Başlıca paketler: `ultralytics`, `torch`, `torchvision`, `opencv-python`, `lap
      ├─ det/det.txt (opsiyonel)
      └─ gt/gt.txt  (opsiyonel)
    ```
-3. `configs/tracking.yaml` içindeki `datasets.root` ve `datasets.sequences` alanlarını kendi dizinlerinize göre güncelleyin.
+3. `configs/tracking.yaml` içindeki `datasets.root` alanını bu dizine (ya da eşdeğerine) işaret edecek şekilde güncelleyin ve `datasets.splits` listesi ile hangi alt klasörlerin otomatik taranacağını belirtin (varsayılan: `train` + `test`).
+4. `datasets.sequences` alanını `null` bırakırsanız belirtilen split'lerdeki **tüm** sekanslar otomatik olarak işlenecektir.
 
-> ⚠️ Workspace kısıtları nedeniyle `c:\Users\...\git\FoMAC\tracking` dizinini doğrudan okuyamıyoruz; lütfen ilgili sekansları FoMAC projesi altına kopyalayın veya config'te tam yolu belirtin.
+> Not: Train klasörü ağırlıklı olarak `SNMOT-060`–`SNMOT-077` ve `SNMOT-097`–`SNMOT-170` dizilerini içeriyor; test klasörü ise `SNMOT-116`–`SNMOT-200` aralığındaki ~70 maç klibini barındırıyor. Bu yapı MOTChallenge formatına uyumlu olduğu sürece direkt kullanılabilir.
 
 ### 2. SoccerNet ReID Dataset'i
 
