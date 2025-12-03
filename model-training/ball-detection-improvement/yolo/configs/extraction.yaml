@@ -1,0 +1,40 @@
+run_extraction: true
+
+# SoccerNet MOT specific settings
+soccernet:
+  root: "f:/SoccerNetTasks/datasets"
+  splits:
+    train: "train/SNMOT-*"
+    val: "test/SNMOT-*"
+    test: null
+  image_subdir: "img1"
+  annotation_file: "gt/gt.txt"
+  tracklet_file: "gameinfo.ini"
+  frame_format: "{frame:06d}.jpg"
+
+classes:
+  order:
+    - "Player"
+    - "Ball"
+    - "Referee"
+  keyword_map:
+    player: "Player"
+    goalkeeper: "Player"
+    ball: "Ball"
+    referee: "Referee"
+
+filters:
+  min_box_size: 8
+  drop_confidence_below: null
+  min_visibility: null
+  keep_empty_frames: false
+
+output:
+  dataset_dir: "ballDataset"
+  dataset_yaml: "ballDataset/data.yaml"
+  naming_prefix: "soccernet"
+
+options:
+  shuffle_sequences: true
+  seed: 42
+  overwrite_existing: false

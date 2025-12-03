@@ -1,0 +1,20 @@
+device_priority:
+  - "cuda"
+  - "dml"
+  - "cpu"
+
+cuda:
+  test_kernel: true
+  fallback_on_error: true
+
+directml:
+  test_ops: true
+  fallback_on_error: true
+
+cpu:
+  threads: null
+
+amp:
+  cuda: true
+  directml: false
+  cpu: false

@@ -1,0 +1,11 @@
+workspace_root: "c:/Users/kaan.aggunlu/Desktop/track/FoMAC/model-training/ball-detection-improvement"
+ballDataset_root: "ballDataset"
+soccernet_root: "f:/SoccerNetTasks/datasets"
+output_root: "ballDataset"
+models_root: "models"
+reports_root: "reports"
+
+dataset_yaml: "ballDataset/data.yaml"
+train_split: "train"
+val_split: "val"
+test_split: null
