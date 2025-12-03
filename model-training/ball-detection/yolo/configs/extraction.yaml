@@ -1,7 +1,7 @@
 # Dataset Extraction Configuration
 
 # Extraction control - Set to false to use existing prepared ballDataset
-run_extraction: false  # Whether to run dataset extraction (use existing ballDataset)
+run_extraction: true  # Whether to run dataset extraction (use existing ballDataset)
 
 # Sampling settings
 max_samples_per_half: null  # Maximum samples per half (null for all)

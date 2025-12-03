@@ -1,70 +1,73 @@
 # YOLO Model Configuration
 
 # Model architecture - Using pre-trained player detection model as base
-model: "/home/alperen/fomac/FoMAC/model-training/player-detection/models/football_detector_optimized/weights/best.pt"  # Pre-trained player model
+model: "yolo11l.pt"  # Pre-trained player model
 
 # Input configuration
-imgsz: 1024  # Input image size (increased for better small object detection)
-batch: 16    # Batch size (RTX 5070 can handle larger batches)
+imgsz: 1024  # Balanced resolution for RTX 5070 12GB
+batch: 2     # Fits 12GB VRAM headroom at this resolution
 
 # Training epochs and optimization
-epochs: 50  # Number of training epochs for fine-tuning
+epochs: 120  # Longer schedule to fully converge 3-class detector
 pretrained: true  # Use pretrained weights
 optimizer: "AdamW"  # Optimizer type
+deterministic: false
 
 # Learning rate configuration
-lr0: 0.002      # Initial learning rate
+lr0: 0.0015     # Slightly lower LR for stable fine-tuning
 lrf: 0.01       # Final learning rate factor
-momentum: 0.937  # Momentum
-weight_decay: 0.0005  # Weight decay
+momentum: 0.94   # Momentum
+weight_decay: 0.0007  # Weight decay
 
 # Warmup settings
-warmup_epochs: 4        # Warmup epochs
-warmup_momentum: 0.8    # Warmup momentum
+warmup_epochs: 5        # Warmup epochs
+warmup_momentum: 0.85   # Warmup momentum
 warmup_bias_lr: 0.1     # Warmup bias learning rate
 
 # Loss weights
 box: 7.5   # Box loss weight
-cls: 0.4   # Class loss weight
-dfl: 2.0   # Distribution focal loss weight
+cls: 0.6   # Class loss weight (player/ball/referee balance)
+dfl: 2.5   # Distribution focal loss weight
+label_smoothing: 0.01  # Mild smoothing to reduce overconfidence
 
 # Data augmentation
-hsv_h: 0.02        # Hue augmentation
-hsv_s: 0.5         # Saturation augmentation
-hsv_v: 0.4         # Value augmentation
-degrees: 3.0       # Rotation degrees
+hsv_h: 0.015       # Hue augmentation
+hsv_s: 0.45        # Saturation augmentation
+hsv_v: 0.35        # Value augmentation
+degrees: 2.0       # Rotation degrees
 translate: 0.1     # Translation factor
-scale: 0.5         # Scale factor
-shear: 0.0         # Shear degrees
+scale: 0.4         # Scale factor
+shear: 1.0         # Shear degrees
 perspective: 0.0   # Perspective factor
 flipud: 0.0        # Vertical flip probability
 fliplr: 0.5        # Horizontal flip probability
 
 # Advanced augmentation
-mosaic: 0.8         # Mosaic augmentation probability
-mixup: 0.05         # Mixup augmentation probability
-copy_paste: 0.1     # Copy-paste augmentation probability
+mosaic: 0.6         # Mosaic augmentation probability (less aggressive late training)
+mixup: 0.0          # Mixup augmentation probability (hurts small balls)
+copy_paste: 0.2     # Copy-paste augmentation probability
 
 # Training settings
-patience: 20        # Early stopping patience (reduced for faster iteration)
-save_period: 3      # Model save period (more frequent saves)
+patience: 30        # Allow more epochs before early stop
+save_period: 5      # Model save period (balanced storage vs history)
 cache: true         # Cache images in RAM (RTX 5070 systems usually have good RAM)
 rect: false         # Rectangular training
 cos_lr: true        # Cosine learning rate scheduler
-close_mosaic: 10    # Close mosaic in last N epochs (reduced)
+close_mosaic: 15    # Close mosaic in last N epochs (longer fine-tuning)
 multi_scale: true   # Multi-scale training
-dropout: 0.1        # Dropout rate
+dropout: 0.05       # Dropout rate
 
 # Validation settings
 val: true     # Validate during training
-conf: 0.01    # Confidence threshold
+conf: 0.005   # Confidence threshold
 iou: 0.65     # IoU threshold
 max_det: 1000 # Maximum detections
 
 # Performance settings
-workers: 12     # Number of dataloader workers (RTX 5070 + modern CPU)
+workers: 8      # Keeps CPU/RAM load reasonable alongside accumulate
 profile: false  # Profile training
 fraction: 1.0   # Dataset fraction to use
+cache: false    # Disable cache for large datasets
 
 # Mixed precision training for RTX 5070
 amp: true       # Automatic Mixed Precision for faster training
