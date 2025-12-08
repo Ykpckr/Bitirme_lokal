@@ -28,7 +28,7 @@ def main():
     parser.add_argument('--save_video', action='store_true', help='Save output video')
     parser.add_argument('--reid', default=None, help='Optional ReID model file (torch) for better tracking')
     parser.add_argument('--conf', type=float, default=0.3, help='YOLO confidence threshold')
-    parser.add_argument('--max_age', type=int, default=30, help='Tracker max_age')
+    parser.add_argument('--max_age', type=int, default=200, help='Tracker max_age')
     parser.add_argument('--n_init', type=int, default=3, help='Tracker n_init')
     args = parser.parse_args()
 
