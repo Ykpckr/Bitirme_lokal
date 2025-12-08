@@ -1,0 +1,11 @@
+model: "yolo11n.pt"
+data: "configs/dataset.yaml"
+
+epochs: 80
+batch: 8
+imgsz: 1280
+device: 0
+
+conf: 0.4
+save: true
+

@@ -1,0 +1,6 @@
+device: "cuda:0"
+max_age: 30
+min_hits: 2
+iou_weight: 0.6
+app_weight: 0.4
+cost_threshold: 0.7
