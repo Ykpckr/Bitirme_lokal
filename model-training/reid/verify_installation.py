@@ -61,7 +61,7 @@ def check_structure():
     required_files = [
         'README.md',
         'requirements.txt',
-        'configs/reid_default.yaml',
+        'configs/example_config.yaml',
         'datasets/__init__.py',
         'datasets/soccer_reid.py',
         'models/__init__.py',
@@ -178,7 +178,7 @@ def verify_config():
     try:
         import yaml
         
-        config_path = reid_root / 'configs' / 'reid_default.yaml'
+        config_path = reid_root / 'configs' / 'example_config.yaml'
         
         with open(config_path, 'r') as f:
             cfg = yaml.safe_load(f)

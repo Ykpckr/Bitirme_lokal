@@ -376,7 +376,7 @@ def main():
     parser.add_argument(
         '--cfg',
         type=str,
-        default='configs/reid_default.yaml',
+        default='configs/example_config.yaml',
         help='Path to config file'
     )
     parser.add_argument(

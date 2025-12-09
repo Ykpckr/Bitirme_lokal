@@ -335,7 +335,7 @@ def main():
     
     # Load YOLO weights path from config if not provided
     if args.weights is None:
-        config_path = Path(__file__).parent.parent / 'configs' / 'reid_default.yaml'
+        config_path = Path(__file__).parent.parent / 'configs' / 'example_config.yaml'
         with open(config_path, 'r') as f:
             cfg = yaml.safe_load(f)
         args.weights = cfg['paths']['yolo_weights']
