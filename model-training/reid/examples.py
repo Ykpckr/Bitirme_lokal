@@ -43,11 +43,11 @@ def example_train():
     
     print("""
 # Train from scratch
-python engine/train.py --cfg configs/reid_default.yaml
+python engine/train.py --cfg configs/example_config.yaml
 
 # Resume from checkpoint
 python engine/train.py \\
-    --cfg configs/reid_default.yaml \\
+    --cfg configs/example_config.yaml \\
     --resume outputs/reid/checkpoints/latest.pt
 
 # Monitor training
@@ -63,11 +63,11 @@ def example_evaluate():
     
     print("""
 # Evaluate best model
-python engine/evaluate.py --cfg configs/reid_default.yaml
+python engine/evaluate.py --cfg configs/example_config.yaml
 
 # Evaluate specific checkpoint
 python engine/evaluate.py \\
-    --cfg configs/reid_default.yaml \\
+    --cfg configs/example_config.yaml \\
     --checkpoint outputs/reid/checkpoints/epoch_50.pt
     """)
 
@@ -80,10 +80,10 @@ def example_export():
     
     print("""
 # Export best model
-python engine/export.py --cfg configs/reid_default.yaml
+python engine/export.py --cfg configs/example_config.yaml
 
 # Export and test
-python engine/export.py --cfg configs/reid_default.yaml --test
+python engine/export.py --cfg configs/example_config.yaml --test
     """)
 
 
@@ -211,7 +211,7 @@ def main():
     print("\n" + "="*60)
     print("For more information:")
     print("  - Read README.md")
-    print("  - Check configs/reid_default.yaml")
+    print("  - Check configs/example_config.yaml")
     print("  - Run individual test scripts")
     print("="*60)
     print()

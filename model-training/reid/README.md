@@ -18,7 +18,7 @@ Person re-identification module specifically designed for football player tracki
 ```
 reid/
 ├── configs/
-│   └── reid_default.yaml      # Configuration file
+│   └── example_config.yaml      # Configuration file
 ├── datasets/
 │   ├── __init__.py
 │   └── soccer_reid.py         # Dataset loader with P×K sampling
@@ -108,17 +108,17 @@ data/reid/
 Train the ReID model with combined CE + Triplet loss:
 
 ```bash
-python engine/train.py --cfg configs/reid_default.yaml
+python engine/train.py --cfg configs/example_config.yaml
 ```
 
 **Resume from checkpoint:**
 ```bash
 python engine/train.py \
-    --cfg configs/reid_default.yaml \
+    --cfg configs/example_config.yaml \
     --resume outputs/reid/checkpoints/latest.pt
 ```
 
-**Training Configuration** (`configs/reid_default.yaml`):
+**Training Configuration** (`configs/example_config.yaml`):
 - **Epochs**: 80
 - **Batch Size**: 64 (P×K = 16×4)
 - **Learning Rate**: 3e-4 with warmup + cosine annealing
@@ -141,13 +141,13 @@ tensorboard --logdir outputs/reid/logs
 Evaluate trained model on query/gallery splits:
 
 ```bash
-python engine/evaluate.py --cfg configs/reid_default.yaml
+python engine/evaluate.py --cfg configs/example_config.yaml
 ```
 
 **With specific checkpoint:**
 ```bash
 python engine/evaluate.py \
-    --cfg configs/reid_default.yaml \
+    --cfg configs/example_config.yaml \
     --checkpoint outputs/reid/checkpoints/best_reid.pt
 ```
 
@@ -162,13 +162,13 @@ python engine/evaluate.py \
 Export trained model for deployment:
 
 ```bash
-python engine/export.py --cfg configs/reid_default.yaml
+python engine/export.py --cfg configs/example_config.yaml
 ```
 
 **With testing:**
 ```bash
 python engine/export.py \
-    --cfg configs/reid_default.yaml \
+    --cfg configs/example_config.yaml \
     --test
 ```
 
@@ -244,7 +244,7 @@ embedding2 = get_embedding(image2)
 
 ## Configuration
 
-Edit `configs/reid_default.yaml` to customize training:
+Edit `configs/example_config.yaml` to customize training:
 
 ```yaml
 model:

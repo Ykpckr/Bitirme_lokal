@@ -26,17 +26,17 @@ python scripts/make_crops_from_yolo.py \
 
 ### 2. Train
 ```bash
-python engine/train.py --cfg configs/reid_default.yaml
+python engine/train.py --cfg configs/example_config.yaml
 ```
 
 ### 3. Evaluate
 ```bash
-python engine/evaluate.py --cfg configs/reid_default.yaml
+python engine/evaluate.py --cfg configs/example_config.yaml
 ```
 
 ### 4. Export
 ```bash
-python engine/export.py --cfg configs/reid_default.yaml
+python engine/export.py --cfg configs/example_config.yaml
 ```
 
 ## Python API
@@ -59,7 +59,7 @@ cost = build_cost(iou_matrix, track_embs, det_embs, alpha=0.6, beta=0.4)
 
 ## Key Files
 
-- **Config**: `configs/reid_default.yaml`
+- **Config**: `configs/example_config.yaml`
 - **Train**: `engine/train.py`
 - **Evaluate**: `engine/evaluate.py`
 - **Export**: `engine/export.py`
@@ -189,7 +189,7 @@ tracking:
 - **README**: Full documentation
 - **IMPLEMENTATION.md**: Implementation details
 - **examples.py**: Usage examples
-- **configs/reid_default.yaml**: Configuration reference
+- **configs/example_config.yaml**: Configuration reference
 
 ## Support
 

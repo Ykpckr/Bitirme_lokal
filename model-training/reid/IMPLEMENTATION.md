@@ -15,7 +15,7 @@ A complete person re-identification (ReID) module has been successfully created 
 │
 ├── configs/
 │   ├── __init__.py
-│   └── reid_default.yaml          # Training/evaluation configuration
+│   └── example_config.yaml          # Training/evaluation configuration
 │
 ├── datasets/
 │   ├── __init__.py
@@ -169,7 +169,7 @@ cost = α × (1 - IoU) + β × (1 - cos_sim)
 - IoU=0.1, cos_sim=0.2 → cost ≈ 0.86
 - ✓ First case has lower cost (better match)
 
-## Configuration (`configs/reid_default.yaml`)
+## Configuration (`configs/example_config.yaml`)
 
 Comprehensive configuration covering:
 - Model architecture (backbone, embedding dimension)
@@ -195,17 +195,17 @@ python scripts/make_crops_from_yolo.py \
 
 ### Step 2: Train
 ```bash
-python engine/train.py --cfg configs/reid_default.yaml
+python engine/train.py --cfg configs/example_config.yaml
 ```
 
 ### Step 3: Evaluate
 ```bash
-python engine/evaluate.py --cfg configs/reid_default.yaml
+python engine/evaluate.py --cfg configs/example_config.yaml
 ```
 
 ### Step 4: Export
 ```bash
-python engine/export.py --cfg configs/reid_default.yaml
+python engine/export.py --cfg configs/example_config.yaml
 ```
 
 ### Step 5: Use in Tracking
@@ -230,7 +230,7 @@ matches = linear_sum_assignment(cost)
 ✅ **Project Structure**: Complete with all specified modules
 - configs/, datasets/, models/, losses/, engine/, integration/, scripts/
 
-✅ **Configuration**: reid_default.yaml with all parameters
+✅ **Configuration**: example_config.yaml with all parameters
 - Model, loss, training, data, evaluation, export settings
 
 ✅ **Dataset**: P×K sampling (16×4) implemented
@@ -267,7 +267,7 @@ matches = linear_sum_assignment(cost)
 - Type hints, docstrings, proper formatting
 
 ✅ **Path Management**: Configuration-based
-- All paths in reid_default.yaml
+- All paths in example_config.yaml
 
 ✅ **Player Only**: Uses class 0 from YOLO
 - No ball/referee ReID
