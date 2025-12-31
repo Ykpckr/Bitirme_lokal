@@ -1,5 +1,0 @@
-# Central place to record absolute paths used by FoMAC tracking/reid configs.
-# Update these entries to match your local environment and reuse them from other YAML files.
-reid_dataset_root: c:/datasets/reid
-frozen_detector_weights: C:\Users\Admin\Desktop\dualPhase\FoMAC\model-training\ball-detection\models\player_ball_detector\weights\best.pt
-tracking_outputs_root: outputs/reid

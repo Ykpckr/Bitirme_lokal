@@ -1,0 +1,129 @@
+# Default config for `run_botsort_team_reid.py`
+# Paths can be absolute or relative to this file.
+
+video: C:\Users\Admin\Desktop\FoMAC\FoMAC\outputs\inputVideo\1_720p.mkv
+
+detector_weights: C:/Users/Admin/Desktop/FoMAC/FoMAC/model-training/ball-detection/models/player_ball_detector/weights/best.pt
+reid_weights: C:/Users/Admin/Desktop/sn-reid/sn-reid/log/model/model.pth.tar-60
+
+device: cuda:0
+save_video: outputs/botsort_team_reid.mp4
+save_txt: outputs/botsort_team_reid.csv
+
+w_iou: 0.6
+w_app: 0.35
+w_team: 0.05
+iou_gate: 0.05
+app_gate: 0.2
+team_strict: false
+
+max_age: 90
+min_hits: 3
+alpha_embed: 0.9
+
+second_stage_iou: true
+iou_gate_second: 0.15
+new_track_min_conf: 0.5
+
+reid_batch_size: 224
+reid_fp16: true
+reid_every_n: 1
+reid_min_conf: 0.25
+reid_topk: 60
+
+reid:
+  memory:
+    enabled: true
+    size: 30
+    reduce: "max"   # max | mean | median
+  update_policy:
+    min_det_conf: 0.55
+    min_box_h: 80
+    min_sim_for_update: 0.55
+
+# Optional: extra appearance stage using OSNet embeddings.
+# If enabled, set `osnet.weights` to either:
+# - a TorchScript model file (recommended), OR
+# - a deep-person-reid torchreid checkpoint (requires torchreid installed).
+osnet:
+  enabled: true
+  weights: "weights/osnet_x1_0_imagenet.pth"  # relative to this config.yaml (TorchScript recommended)
+  model_name: "osnet_x1_0"
+  batch_size: 128
+  fp16: true
+  input_hw: [256, 128]
+
+  # Association stage params (runs between ConvNeXt stage and IoU-only stage)
+  app_gate: 0.50
+  iou_gate: 0.01
+  w_iou: 0.20
+  w_app: 0.80
+  w_team: 0.05
+
+  update_policy:
+    min_sim_for_update: 0.55
+
+progress_every_sec: 5.0
+
+referee_team_id: 2
+
+relink_enabled: true
+relink_max_age: 900
+relink_app_gate: 0.45                                                                                     
+relink_sim_margin: 0.05
+relink_team_strict: true
+relink_only_player: true
+embed_gallery_size: 20
+
+# Only penalize/gate team for these class ids (comma-separated). Default: player only.
+team_penalize_classes: "0"
+
+# Optional spatial relink constraint (0 disables). If enabled, candidates farther than this
+# fraction of the frame diagonal are rejected.
+relink_max_center_dist_norm: 0.35
+
+# Prevent embedding drift on IoU-only associations (stage-2):
+embed_update_min_sim_iou_only: 0.30
+
+cut_reset: false
+# cut_mode: reset | inactive
+cut_mode: reset
+
+reacquire:
+  enabled: true
+  max_gap_frames: 450
+  topk_candidates: 10
+  sim_gate: 0.45
+  use_hungarian: true
+  time_penalty: 0.002
+
+cut_detect:
+  enabled: true
+  method: "hist"
+  threshold: 0.55
+  min_interval_frames: 15
+  mode: "inactive"   # reset | inactive
+
+replay_mode:
+  enabled: true
+  frames: 45
+  stricter:
+    sim_gate: 0.55
+    team_strict: true
+    time_penalty: 0.004
+
+spatial:
+  enabled: true
+  grid: [6, 3]
+  bin_penalty: 0.15
+  hard_center_gate_norm: 0.60
+  reduce_on_replay: true
+  replay_scale: 0.5
+
+postprocess:
+  merge_tracklets: true
+  merge_sim_gate: 0.60
+  merge_max_gap_frames: 300
+
+seed: 0
+max_frames: 2000

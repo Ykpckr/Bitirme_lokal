@@ -1,0 +1,13 @@
+# Tracking runner dependencies
+# Install into your active env (e.g., conda env `yolov8`).
+
+pyyaml
+numpy
+opencv-python
+ultralytics
+
+# Optional (used if installed for faster/robust assignment in reacquire)
+scipy
+
+# Optional OSNet stage (only needed if `osnet.enabled: true`)
+# torchreid
