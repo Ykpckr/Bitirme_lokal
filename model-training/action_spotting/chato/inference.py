@@ -1,22 +1,27 @@
 import torch
 import numpy as np
-from model import ActionSpottingNet
-from utils import nms
+from model import ActionSpottingTransformerNet
 
-FPS = 2
+def nms(events, t=30):
+    events = sorted(events, key=lambda x: -x[1])
+    keep = []
+    for e in events:
+        if all(abs(e[0]-k[0]) > t for k in keep):
+            keep.append(e)
+    return keep
 
-def infer(video_features, model):
-    model.eval()
-    spots = []
+def infer(video_feat):
+    model = ActionSpottingTransformerNet().cuda().eval()
+    feats = np.load(video_feat)
+    preds = []
 
-    with torch.no_grad():
-        for t in range(0, len(video_features) - 40, 10):
-            x = torch.tensor(video_features[t:t+40]).unsqueeze(0).cuda()
-            cls, reg = model(x)
+    for i in range(0, len(feats)-40, 20):
+        x = torch.tensor(feats[i:i+40]).unsqueeze(0).cuda()
+        c,_ = model(x)
+        s = torch.softmax(c,1)
+        cls = torch.argmax(s).item()
+        conf = s[0,cls].item()
+        if cls>0 and conf>0.5:
+            preds.append((i/2, conf, cls))
 
-            score, label = torch.max(torch.softmax(cls, -1), -1)
-            if label.item() != 0:
-                time = (t + reg.item() * 40) / FPS
-                spots.append((time, score.item(), label.item()))
-
-    return nms(spots)
+    return nms(preds)

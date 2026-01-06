@@ -4,77 +4,101 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-# ======================
-# SABİTLER
-# ======================
+# =====================
+# AYARLAR
+# =====================
 FPS = 2
 WINDOW_SEC = 20
-WINDOW_SIZE = WINDOW_SEC * FPS  # 40 frame
-STRIDE = WINDOW_SIZE // 2       # %50 overlap
+WINDOW_SIZE = FPS * WINDOW_SEC
+NUM_CLASSES = 17
+BACKGROUND_ID = NUM_CLASSES
 
-# SoccerNet label map
-ACTION_TO_ID = {
+LABEL2ID = {
     "Kick-off": 0,
-    "Goal": 1,
-    "Substitution": 2,
-    "Offside": 3,
-    "Shots on target": 4,
-    "Shots off target": 5,
-    "Clearance": 6,
-    "Ball out of play": 7,
-    "Foul": 8,
-    "Indirect free-kick": 9,
-    "Direct free-kick": 10,
-    "Corner": 11,
-    "Yellow card": 12,
-    "Red card": 13,
-    "Penalty": 14,
-    "Throw-in": 15,
-    "Goal kick": 16,
+    "Throw-in": 1,
+    "Goal": 2,
+    "Corner": 3,
+    "Free-kick": 4,
+    "Penalty": 5,
+    "Offside": 6,
+    "Foul": 7,
+    "Yellow card": 8,
+    "Red card": 9,
+    "Substitution": 10,
+    "Clearance": 11,
+    "Shot": 12,
+    "Save": 13,
+    "Ball out of play": 14,
+    "Direct free-kick": 15,
+    "Indirect free-kick": 16,
 }
 
-NUM_CLASSES = 17
-
-
+# =====================
+# DATASET
+# =====================
 class SoccerNetDataset(Dataset):
-    def __init__(self, root_dir, feature_name="1_baidu_soccer_embeddings.npy"):
-        self.windows = []
+    def __init__(self, root_dir):
+        self.index = []  # (feature_path, label_path, start_frame)
 
-        print("Dataset taranıyor...")
+        print("Dataset indexleniyor...")
 
         for root, _, files in os.walk(root_dir):
-            if "Labels-v2.json" in files and feature_name in files:
-                feat_path = os.path.join(root, feature_name)
-                label_path = os.path.join(root, "Labels-v2.json")
 
-                features = np.load(feat_path)  # (T, 8576)
-                T = features.shape[0]
+            if "Labels-v2.json" not in files:
+                continue
 
-                cls_targets = np.zeros(T, dtype=np.int64)
+            npy_files = [f for f in files if f.endswith(".npy")]
+            if len(npy_files) == 0:
+                continue
 
-                with open(label_path, "r") as f:
-                    annotations = json.load(f)["annotations"]
+            feat_path = os.path.join(root, npy_files[0])
+            label_path = os.path.join(root, "Labels-v2.json")
 
-                for event in annotations:
-                    frame = int(float(event["position"]) * FPS)
-                    if frame < T and event["label"] in ACTION_TO_ID:
-                        cls_targets[frame] = ACTION_TO_ID[event["label"]]
+            features = np.load(feat_path, mmap_mode="r")
+            T, _ = features.shape
 
-                # WINDOW OLUŞTUR
-                for start in range(0, T - WINDOW_SIZE, STRIDE):
-                    end = start + WINDOW_SIZE
-                    x = features[start:end]
-                    y = cls_targets[start:end]
+            if T < WINDOW_SIZE:
+                continue
 
-                    self.windows.append((
-                        torch.tensor(x, dtype=torch.float32),
-                        torch.tensor(y, dtype=torch.long)
-                    ))
+            stride = WINDOW_SIZE // 2
+            for t in range(0, T - WINDOW_SIZE, stride):
+                self.index.append((feat_path, label_path, t))
 
-        print(f"Toplam window sayısı: {len(self.windows)}")
+        print(f"Toplam window sayısı: {len(self.index)}")
 
     def __len__(self):
-        return len(self.windows)
+        return len(self.index)
 
     def __getitem__(self, idx):
-        return self.windows[idx]
+        feat_path, label_path, start = self.index[idx]
+
+        features = np.load(feat_path, mmap_mode="r")
+        x = features[start:start + WINDOW_SIZE]
+
+        cls_targets = self._parse_labels(label_path, features.shape[0])
+        y = cls_targets[start:start + WINDOW_SIZE]
+
+        return (
+            torch.tensor(x, dtype=torch.float32),
+            torch.tensor(y, dtype=torch.long)
+        )
+
+    # =====================
+    # LABEL PARSER
+    # =====================
+    def _parse_labels(self, label_path, num_frames):
+        cls_targets = np.full(num_frames, BACKGROUND_ID, dtype=np.int64)
+
+        with open(label_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        for event in data.get("annotations", []):
+            label = event["label"]
+            if label not in LABEL2ID:
+                continue
+
+            frame = int(float(event["position"]) * FPS)
+            if frame < num_frames:
+                cls_targets[frame] = LABEL2ID[label]
+
+        return cls_targets
