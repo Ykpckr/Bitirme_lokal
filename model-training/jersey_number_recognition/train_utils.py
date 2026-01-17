@@ -12,12 +12,13 @@ def train_epoch(
     criterion, 
     optimizer, 
     device: str
-) -> Tuple[float, float]:
+) -> Tuple[float, float, List, List]:
     model.train()
     
     running_loss = 0.0
     all_preds = []
     all_labels = []
+    all_probs = []
     
     pbar = tqdm(dataloader, desc="Training")
     for images, labels in pbar:
@@ -32,15 +33,18 @@ def train_epoch(
         
         running_loss += loss.item() * images.size(0)
         _, preds = torch.max(outputs, 1)
+        probs = torch.softmax(outputs, dim=1)
+        
         all_preds.extend(preds.cpu().numpy())
         all_labels.extend(labels.cpu().numpy())
+        all_probs.extend(probs.detach().cpu().numpy())
         
         pbar.set_postfix({'loss': loss.item()})
     
     epoch_loss = running_loss / len(dataloader.dataset)
     epoch_acc = accuracy_score(all_labels, all_preds)
     
-    return epoch_loss, epoch_acc
+    return epoch_loss, epoch_acc, all_probs, all_labels
 
 
 def validate(
@@ -48,11 +52,12 @@ def validate(
     dataloader: DataLoader, 
     criterion, 
     device: str
-) -> Tuple[float, float, List, List]:
+) -> Tuple[float, float, List, List, List]:
     model.eval()
     running_loss = 0.0
     all_preds = []
     all_labels = []
+    all_probs = []
     
     with torch.no_grad():
         for images, labels in tqdm(dataloader, desc="Validation"):
@@ -63,13 +68,16 @@ def validate(
             
             running_loss += loss.item() * images.size(0)
             _, preds = torch.max(outputs, 1)
+            probs = torch.softmax(outputs, dim=1)
+            
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
+            all_probs.extend(probs.cpu().numpy())
     
     epoch_loss = running_loss / len(dataloader.dataset)
     epoch_acc = accuracy_score(all_labels, all_preds)
     
-    return epoch_loss, epoch_acc, all_preds, all_labels
+    return epoch_loss, epoch_acc, all_preds, all_labels, all_probs
 
 
 def test_model(

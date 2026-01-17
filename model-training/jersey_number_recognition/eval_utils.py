@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix
 
 
 def plot_training_history(history: Dict, output_dir: Path):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 5))
     
     ax1.plot(history['train_loss'], label='Train Loss')
     ax1.plot(history['val_loss'], label='Val Loss')
@@ -24,6 +24,15 @@ def plot_training_history(history: Dict, output_dir: Path):
     ax2.set_title('Training and Validation Accuracy')
     ax2.legend()
     ax2.grid(True)
+    
+    if 'train_map' in history:
+        ax3.plot(history['train_map'], label='Train mAP')
+        ax3.plot(history['val_map'], label='Val mAP')
+        ax3.set_xlabel('Epoch')
+        ax3.set_ylabel('mAP')
+        ax3.set_title('Training and Validation mAP')
+        ax3.legend()
+        ax3.grid(True)
     
     plt.tight_layout()
     plt.savefig(output_dir / 'training_history.png', dpi=150)

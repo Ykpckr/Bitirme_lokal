@@ -6,7 +6,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, average_precision_score
+from sklearn.preprocessing import label_binarize
 
 from config import TrainingConfig
 from dataset import JerseyNumberDataset
@@ -92,6 +93,7 @@ def main():
     total_samples = len(train_labels)
     class_weights = torch.FloatTensor([total_samples / (num_classes * count) if count > 0 else 1.0 
                                        for count in class_counts])
+    class_weights = class_weights.to(config.device)
     print(f"\nClass weights applied (first 10): {class_weights[:10].tolist()}")
     
     criterion = nn.CrossEntropyLoss(weight=class_weights)
@@ -105,8 +107,10 @@ def main():
     history = {
         'train_loss': [],
         'train_acc': [],
+        'train_map': [],
         'val_loss': [],
-        'val_acc': []
+        'val_acc': [],
+        'val_map': []
     }
     
     best_val_acc = 0.0
@@ -119,24 +123,49 @@ def main():
         print(f"\nEpoch {epoch + 1}/{config.num_epochs}")
         print("-" * 40)
         
-        train_loss, train_acc = train_epoch(
+        train_loss, train_acc, train_probs, train_labels_epoch = train_epoch(
             model, train_loader, criterion, optimizer, config.device
         )
         
-        val_loss, val_acc, val_preds, val_labels = validate(
+        val_loss, val_acc, val_preds, val_labels_epoch, val_probs = validate(
             model, val_loader, criterion, config.device
         )
+        
+        # Calculate mAP
+        try:
+            train_labels_bin = label_binarize(train_labels_epoch, classes=range(num_classes))
+            val_labels_bin = label_binarize(val_labels_epoch, classes=range(num_classes))
+            
+            # Handle binary case specifically if num_classes == 2 (though unlikely for jersey numbers)
+            if num_classes == 2:
+                # label_binarize returns (n_samples, 1) for binary, but probs might be (n_samples, 2)
+                # average_precision_score expects (n_samples,) if y_true is (n_samples, 1) or vector
+                # But we treat it as macro average over classes normally.
+                # For safety in multiclass setting, use the matrix form.
+                if train_labels_bin.shape[1] == 1:
+                    train_labels_bin = np.hstack((1 - train_labels_bin, train_labels_bin))
+                if val_labels_bin.shape[1] == 1:
+                    val_labels_bin = np.hstack((1 - val_labels_bin, val_labels_bin))
+
+            train_map = average_precision_score(train_labels_bin, train_probs, average="macro")
+            val_map = average_precision_score(val_labels_bin, val_probs, average="macro")
+        except Exception as e:
+            print(f"Warning: Could not calculate mAP: {e}")
+            train_map = 0.0
+            val_map = 0.0
         
         scheduler.step(val_loss)
         
         history['train_loss'].append(train_loss)
         history['train_acc'].append(train_acc)
+        history['train_map'].append(train_map)
         history['val_loss'].append(val_loss)
         history['val_acc'].append(val_acc)
+        history['val_map'].append(val_map)
         
         print(f"\nEpoch {epoch + 1} Results:")
-        print(f"  Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f}")
-        print(f"  Val Loss:   {val_loss:.4f} | Val Acc:   {val_acc:.4f}")
+        print(f"  Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f} | Train mAP: {train_map:.4f}")
+        print(f"  Val Loss:   {val_loss:.4f} | Val Acc:   {val_acc:.4f} | Val mAP:   {val_map:.4f}")
         
         if val_acc > best_val_acc:
             best_val_acc = val_acc
@@ -181,7 +210,7 @@ def main():
     model.load_state_dict(checkpoint['model_state_dict'])
     
     print("\nFinal evaluation on validation set:")
-    val_loss, val_acc, val_preds, val_labels_eval = validate(
+    val_loss, val_acc, val_preds, val_labels_eval, _ = validate(
         model, val_loader, criterion, config.device
     )
     
