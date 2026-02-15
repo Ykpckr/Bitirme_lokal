@@ -6,7 +6,7 @@ import torch
 # 1. PATH SETTINGS (DOSYA YOLLARI)
 # ==============================================================================
 # Veri seti kök dizini (Baidu/ResNet özelliklerinin olduğu yer)
-DATASET_DIR = Path("C:/FoMAC_Dataset/action_spotting")
+DATASET_DIR = Path("H:/soccerNet")
 
 # Model kayıt yeri
 CHECKPOINT_DIR = Path("./checkpoints")
@@ -16,7 +16,7 @@ LOG_DIR = Path("./logs")
 # 2. FEATURE SETTINGS (ÖZELLİK AYARLARI)
 # ==============================================================================
 # "baidu" (8576 dim, 1 FPS) veya "resnet" (2048 dim, 2 FPS)
-FEATURE_TYPE = "baidu" 
+FEATURE_TYPE = "resnet" 
 
 if FEATURE_TYPE == "baidu":
     FEATURE_DIM = 8576
@@ -59,7 +59,7 @@ MODEL_TYPE = "cnn"
 
 # CNN / NetVLAD Ayarları
 PROJECTION_DIM = 512       # 8576 -> 512 Reduction
-NETVLAD_CLUSTERS = 16      # K=16 (4GB VRAM için güvenli, PDF önerisi: 64)
+NETVLAD_CLUSTERS = 48      # K=16 (4GB VRAM için güvenli, PDF önerisi: 64)
 NETVLAD_GHOST_CLUSTERS = 0 # İleri seviye
 
 # ==============================================================================
@@ -67,9 +67,9 @@ NETVLAD_GHOST_CLUSTERS = 0 # İleri seviye
 # ==============================================================================
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-BATCH_SIZE = 8          # Hız ve stabilite dengesi
-ACCUMULATION_STEPS = 2  # Sanal Batch Size = 16
-EPOCHS = 20
+BATCH_SIZE = 2000          # Hız ve stabilite dengesi
+ACCUMULATION_STEPS = 1  # Sanal Batch Size = 16
+EPOCHS = 50
 LEARNING_RATE = 1e-4    # CNN için
 WEIGHT_DECAY = 1e-4
 
