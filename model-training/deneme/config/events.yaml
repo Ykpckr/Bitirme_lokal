@@ -1,0 +1,5 @@
+ball_speed_shot_threshold: 12.0
+ball_speed_pass_threshold: 4.0
+player_run_speed_threshold: 6.0
+player_close_threshold: 60
+possession_frames: 3

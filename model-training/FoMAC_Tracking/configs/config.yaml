@@ -1,0 +1,40 @@
+# configs/config.yaml
+
+video:
+  input_path: "C:/Users/BatuhanÇağlar/Desktop/Bitirme/2_720p.mkv"  # Videonun tam yolu
+  output_folder: "output/deneme_v1"
+  save_video: True
+  show_video: True
+  target_fps: 25  # Hesaplamalar için baz alınacak FPS (Video fps'i farklıysa oranlanır)
+
+detection:
+  model_path: "C:/Users/BatuhanÇağlar/Desktop/Bitirme/FoMAC/model-training/player-detection/models/football_detector_optimized/weights/best.pt"  # YOLO modelinin yolu
+  imgsz: 640
+  conf_thres: 0.45       # Futbolcu olmayan gürültüyü (seyirci vb.) elemek için yüksek tutuyoruz
+  iou_thres: 0.5         # NMS eşiği
+  classes: [0, 1]        # 0: Player, 1: Ball (Modelindeki class ID'lerine göre düzenle)
+
+reid:
+  enabled: True          # ReID modülü aktif mi?
+  model_name: "osnet_x1_0" # Hafif ve hızlı bir ReID mimarisi (Daha sonra indireceğiz)
+  model_path: "models/reid/osnet_x1_0_imagenet.pth" # ReID ağırlık dosyası
+  input_size: [256, 128] # (height, width) - İnsan vücudu için dikey dikdörtgen
+  batch_size: 32         # Kaç oyuncunun görüntüsü aynı anda işlenecek
+
+tracker:
+  # DeepSORT Benzerlik Ayarları
+  max_dist: 0.2          # ReID (Görünüm) uzaklık eşiği. (Düşük = Daha katı benzerlik)
+  min_confidence: 0.4    # Takibe başlamak için minimum deteksiyon güveni
+  nms_max_overlap: 1.0   # Non-max suppression (Genelde 1.0 bırakılır, tracker içinde yapılmaz)
+  
+  # IOU (Konum) Ayarları
+  max_iou_distance: 0.7  # Konum eşleşme toleransı
+  
+  # Yaşlandırma ve Durum Ayarları
+  max_age: 60            # Bir obje kaybolduktan sonra 60 kare (yaklaşık 2-3 sn) hafızada tutulur
+  n_init: 3              # Bir objenin "ID" alıp ekranda görünmesi için en az 3 kare üst üste görülmeli
+  
+spotter:
+  shot_threshold: 25.0   # Şut hızı eşiği (px/s veya m/s - çevrime bağlı)
+  accel_threshold: 150.0 # İvme eşiği
+  smooth_window: 5       # Hız hesabı için kayan pencere boyutu

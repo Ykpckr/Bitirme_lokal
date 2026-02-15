@@ -1,0 +1,3261 @@
+[
+    {
+        "frame": 7,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 1,
+            "accel": 6050.265389033359
+        },
+        "timestamp": 1765236083.2536402
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 2,
+            "accel": 333.2353897516285
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 812.1573597649153
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 240.73804239289663
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 177.07300797527486
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 453.02403882343964
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 734.2638307703146
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 177.2575918211455
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 577.5979110432129
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 355.34325665208826
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 695.33814925651
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 15,
+            "accel": 190.4296029993741
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 16,
+            "accel": 133.9384016906755
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 223.49335405864412
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 18,
+            "accel": 419.92437668437145
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 14,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 20,
+            "accel": 749.1875735277038
+        },
+        "timestamp": 1765236084.02766
+    },
+    {
+        "frame": 15,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 337.6015484307663
+        },
+        "timestamp": 1765236084.1317947
+    },
+    {
+        "frame": 15,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 11,
+            "accel": 241.29972734931985
+        },
+        "timestamp": 1765236084.1317947
+    },
+    {
+        "frame": 15,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 14,
+            "accel": 440.24983911143545
+        },
+        "timestamp": 1765236084.1317947
+    },
+    {
+        "frame": 17,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 22,
+            "accel": 212.19384883929973
+        },
+        "timestamp": 1765236084.342874
+    },
+    {
+        "frame": 21,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 24,
+            "accel": 455.9183183104565
+        },
+        "timestamp": 1765236084.7694912
+    },
+    {
+        "frame": 32,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 28,
+            "accel": 788.5349747703142
+        },
+        "timestamp": 1765236085.882741
+    },
+    {
+        "frame": 37,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 1,
+            "accel": 113.21652514730478
+        },
+        "timestamp": 1765236086.398857
+    },
+    {
+        "frame": 37,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 29,
+            "accel": 399.5949863678735
+        },
+        "timestamp": 1765236086.398857
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 2,
+            "accel": 166.5393578505908
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 635.568591879278
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 166.1413916407735
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 163.96808177726453
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 10415.695393158245
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 177.0105836225399
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 190.951643741748
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 948.0798811664663
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 15,
+            "accel": 464.9532671044696
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 16,
+            "accel": 507.78025320047357
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 40,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 18,
+            "accel": 724.68894570634
+        },
+        "timestamp": 1765236086.7059274
+    },
+    {
+        "frame": 41,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 308.4099283437407
+        },
+        "timestamp": 1765236086.8089488
+    },
+    {
+        "frame": 41,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 8323.540087297037
+        },
+        "timestamp": 1765236086.8089488
+    },
+    {
+        "frame": 41,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 11,
+            "accel": 128.89570679361225
+        },
+        "timestamp": 1765236086.8089488
+    },
+    {
+        "frame": 42,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 264.6952689691707
+        },
+        "timestamp": 1765236086.9129732
+    },
+    {
+        "frame": 43,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 19,
+            "accel": 648.6872788125627
+        },
+        "timestamp": 1765236087.016996
+    },
+    {
+        "frame": 47,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 24,
+            "accel": 384.94984568833536
+        },
+        "timestamp": 1765236087.4300888
+    },
+    {
+        "frame": 49,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 37,
+            "accel": 263.58156171345627
+        },
+        "timestamp": 1765236087.6361349
+    },
+    {
+        "frame": 54,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 22,
+            "accel": 1757.5788003316006
+        },
+        "timestamp": 1765236088.1592827
+    },
+    {
+        "frame": 61,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 179.56547417567515
+        },
+        "timestamp": 1765236088.8727872
+    },
+    {
+        "frame": 63,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 1,
+            "accel": 524.3701990584163
+        },
+        "timestamp": 1765236089.0778332
+    },
+    {
+        "frame": 66,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 308.86768651193887
+        },
+        "timestamp": 1765236089.3985746
+    },
+    {
+        "frame": 66,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 110.38242265951226
+        },
+        "timestamp": 1765236089.3985746
+    },
+    {
+        "frame": 66,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 320.4712836079278
+        },
+        "timestamp": 1765236089.3985746
+    },
+    {
+        "frame": 66,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 6741.373435498951
+        },
+        "timestamp": 1765236089.3995745
+    },
+    {
+        "frame": 66,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 14,
+            "accel": 107.47906734240082
+        },
+        "timestamp": 1765236089.3995745
+    },
+    {
+        "frame": 66,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 16,
+            "accel": 413.28147949748166
+        },
+        "timestamp": 1765236089.3995745
+    },
+    {
+        "frame": 66,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 18,
+            "accel": 690.7119507981893
+        },
+        "timestamp": 1765236089.3995745
+    },
+    {
+        "frame": 67,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 2,
+            "accel": 692.5440815833994
+        },
+        "timestamp": 1765236089.505599
+    },
+    {
+        "frame": 67,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 212.5692503925535
+        },
+        "timestamp": 1765236089.505599
+    },
+    {
+        "frame": 67,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 379.4112647711984
+        },
+        "timestamp": 1765236089.505599
+    },
+    {
+        "frame": 67,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 678.2854095521458
+        },
+        "timestamp": 1765236089.505599
+    },
+    {
+        "frame": 67,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 331.7480890939862
+        },
+        "timestamp": 1765236089.505599
+    },
+    {
+        "frame": 67,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 45,
+            "accel": 1037.7744492774596
+        },
+        "timestamp": 1765236089.505599
+    },
+    {
+        "frame": 68,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 126.65919021612932
+        },
+        "timestamp": 1765236089.6166313
+    },
+    {
+        "frame": 68,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 11,
+            "accel": 239.85733471371944
+        },
+        "timestamp": 1765236089.6166313
+    },
+    {
+        "frame": 69,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 1193.5979500025078
+        },
+        "timestamp": 1765236089.7186475
+    },
+    {
+        "frame": 69,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 19,
+            "accel": 230.58132582638962
+        },
+        "timestamp": 1765236089.7186475
+    },
+    {
+        "frame": 73,
+        "type": "shot_detected",
+        "data": {
+            "speed": 61.444690199537824
+        },
+        "timestamp": 1765236090.1357408
+    },
+    {
+        "frame": 74,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 42,
+            "accel": 141.86065570062246
+        },
+        "timestamp": 1765236090.2391331
+    },
+    {
+        "frame": 77,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 20,
+            "accel": 258.390506765171
+        },
+        "timestamp": 1765236090.5464087
+    },
+    {
+        "frame": 78,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 47,
+            "accel": 387.30413540629627
+        },
+        "timestamp": 1765236090.644434
+    },
+    {
+        "frame": 84,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 24,
+            "accel": 247.86238003343274
+        },
+        "timestamp": 1765236091.2745724
+    },
+    {
+        "frame": 89,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 1,
+            "accel": 3935.9339285616966
+        },
+        "timestamp": 1765236091.8046906
+    },
+    {
+        "frame": 92,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 231.09224704348108
+        },
+        "timestamp": 1765236092.1177616
+    },
+    {
+        "frame": 92,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 110.97816964068805
+        },
+        "timestamp": 1765236092.1177616
+    },
+    {
+        "frame": 92,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 470.31930048695756
+        },
+        "timestamp": 1765236092.1177616
+    },
+    {
+        "frame": 92,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 357.1392367398138
+        },
+        "timestamp": 1765236092.1177616
+    },
+    {
+        "frame": 92,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 14,
+            "accel": 100.56013538249573
+        },
+        "timestamp": 1765236092.1177616
+    },
+    {
+        "frame": 92,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 16,
+            "accel": 626.2462876331009
+        },
+        "timestamp": 1765236092.1177616
+    },
+    {
+        "frame": 92,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 18,
+            "accel": 157.41829534643995
+        },
+        "timestamp": 1765236092.1177616
+    },
+    {
+        "frame": 93,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 2,
+            "accel": 225.15233610541046
+        },
+        "timestamp": 1765236092.2217925
+    },
+    {
+        "frame": 93,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 293.12623518625
+        },
+        "timestamp": 1765236092.2217925
+    },
+    {
+        "frame": 93,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 1317.8952628350864
+        },
+        "timestamp": 1765236092.2217925
+    },
+    {
+        "frame": 94,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 173.61452634186918
+        },
+        "timestamp": 1765236092.3258073
+    },
+    {
+        "frame": 94,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 157.6880173282312
+        },
+        "timestamp": 1765236092.3258073
+    },
+    {
+        "frame": 94,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 418.2185578951028
+        },
+        "timestamp": 1765236092.3258073
+    },
+    {
+        "frame": 96,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 294.8961611245096
+        },
+        "timestamp": 1765236092.5218513
+    },
+    {
+        "frame": 106,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 35,
+            "accel": 351.31150033896967
+        },
+        "timestamp": 1765236093.549082
+    },
+    {
+        "frame": 114,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 23,
+            "accel": 1638.2207287209005
+        },
+        "timestamp": 1765236094.356679
+    },
+    {
+        "frame": 116,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 1,
+            "accel": 1186.7091493365335
+        },
+        "timestamp": 1765236094.562283
+    },
+    {
+        "frame": 116,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 19,
+            "accel": 566.097279790668
+        },
+        "timestamp": 1765236094.562283
+    },
+    {
+        "frame": 118,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 304.23876332928097
+        },
+        "timestamp": 1765236094.7613287
+    },
+    {
+        "frame": 118,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 250.0404137102877
+        },
+        "timestamp": 1765236094.7613287
+    },
+    {
+        "frame": 118,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 422.01014766790405
+        },
+        "timestamp": 1765236094.7613287
+    },
+    {
+        "frame": 118,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 122.5104823259584
+        },
+        "timestamp": 1765236094.7613287
+    },
+    {
+        "frame": 118,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 14,
+            "accel": 221.04440084967058
+        },
+        "timestamp": 1765236094.7613287
+    },
+    {
+        "frame": 118,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 16,
+            "accel": 282.80088096596995
+        },
+        "timestamp": 1765236094.7613287
+    },
+    {
+        "frame": 119,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 108.38957003966519
+        },
+        "timestamp": 1765236094.8663511
+    },
+    {
+        "frame": 119,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 18,
+            "accel": 319.2884653675604
+        },
+        "timestamp": 1765236094.8663511
+    },
+    {
+        "frame": 120,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 171.25510470952756
+        },
+        "timestamp": 1765236094.9673736
+    },
+    {
+        "frame": 120,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 608.6492931685907
+        },
+        "timestamp": 1765236094.9673736
+    },
+    {
+        "frame": 120,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 344.404723634792
+        },
+        "timestamp": 1765236094.9673736
+    },
+    {
+        "frame": 120,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 1468.365285371838
+        },
+        "timestamp": 1765236094.9673736
+    },
+    {
+        "frame": 124,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 459.59785601261643
+        },
+        "timestamp": 1765236095.3774686
+    },
+    {
+        "frame": 128,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 1906.605130971727
+        },
+        "timestamp": 1765236095.7865577
+    },
+    {
+        "frame": 144,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 447.0619179075089
+        },
+        "timestamp": 1765236097.417923
+    },
+    {
+        "frame": 144,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 921.004209756469
+        },
+        "timestamp": 1765236097.417923
+    },
+    {
+        "frame": 144,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 484.28272368501837
+        },
+        "timestamp": 1765236097.417923
+    },
+    {
+        "frame": 144,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 352.7493744219175
+        },
+        "timestamp": 1765236097.417923
+    },
+    {
+        "frame": 144,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 14,
+            "accel": 797.9225626323391
+        },
+        "timestamp": 1765236097.417923
+    },
+    {
+        "frame": 144,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 16,
+            "accel": 975.6750892858161
+        },
+        "timestamp": 1765236097.417923
+    },
+    {
+        "frame": 145,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 807.5326291885837
+        },
+        "timestamp": 1765236097.518946
+    },
+    {
+        "frame": 145,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 18,
+            "accel": 216.205819308216
+        },
+        "timestamp": 1765236097.518946
+    },
+    {
+        "frame": 146,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 272.50850318265236
+        },
+        "timestamp": 1765236097.6259701
+    },
+    {
+        "frame": 146,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 512.2759575501814
+        },
+        "timestamp": 1765236097.6259701
+    },
+    {
+        "frame": 146,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 19,
+            "accel": 104.01519048488659
+        },
+        "timestamp": 1765236097.6259701
+    },
+    {
+        "frame": 147,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 295.5370073258981
+        },
+        "timestamp": 1765236097.727994
+    },
+    {
+        "frame": 147,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 54,
+            "accel": 1247.2266035440284
+        },
+        "timestamp": 1765236097.727994
+    },
+    {
+        "frame": 151,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 1442.4763580432143
+        },
+        "timestamp": 1765236098.1280828
+    },
+    {
+        "frame": 152,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 4552.1742416832085
+        },
+        "timestamp": 1765236098.2261055
+    },
+    {
+        "frame": 154,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 59,
+            "accel": 298.43187673087
+        },
+        "timestamp": 1765236098.42915
+    },
+    {
+        "frame": 155,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 50,
+            "accel": 1188.2590294130664
+        },
+        "timestamp": 1765236098.5351741
+    },
+    {
+        "frame": 156,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 533.2719864391585
+        },
+        "timestamp": 1765236098.6331966
+    },
+    {
+        "frame": 157,
+        "type": "shot_detected",
+        "data": {
+            "speed": 38.83659510017382
+        },
+        "timestamp": 1765236098.7212157
+    },
+    {
+        "frame": 163,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 55,
+            "accel": 657.4216442652205
+        },
+        "timestamp": 1765236099.3243515
+    },
+    {
+        "frame": 168,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 57,
+            "accel": 1438.1010712428824
+        },
+        "timestamp": 1765236099.823466
+    },
+    {
+        "frame": 170,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 363.25847955196673
+        },
+        "timestamp": 1765236100.0265088
+    },
+    {
+        "frame": 170,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 882.4194865345681
+        },
+        "timestamp": 1765236100.0265088
+    },
+    {
+        "frame": 170,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 724.2193988053098
+        },
+        "timestamp": 1765236100.0265088
+    },
+    {
+        "frame": 170,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 14,
+            "accel": 582.2216295742026
+        },
+        "timestamp": 1765236100.0265088
+    },
+    {
+        "frame": 171,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 463.41108011735594
+        },
+        "timestamp": 1765236100.131533
+    },
+    {
+        "frame": 171,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 241.21234743052148
+        },
+        "timestamp": 1765236100.131533
+    },
+    {
+        "frame": 171,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 18,
+            "accel": 420.50883671979767
+        },
+        "timestamp": 1765236100.131533
+    },
+    {
+        "frame": 172,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 1058.74082596849
+        },
+        "timestamp": 1765236100.2345555
+    },
+    {
+        "frame": 172,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 109.23507443902753
+        },
+        "timestamp": 1765236100.2345555
+    },
+    {
+        "frame": 173,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 314.8573128132933
+        },
+        "timestamp": 1765236100.3375788
+    },
+    {
+        "frame": 177,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 412.36298350298523
+        },
+        "timestamp": 1765236100.74267
+    },
+    {
+        "frame": 178,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 672.2150685070933
+        },
+        "timestamp": 1765236100.8516939
+    },
+    {
+        "frame": 183,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 700.1002900216786
+        },
+        "timestamp": 1765236101.3718576
+    },
+    {
+        "frame": 187,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 53,
+            "accel": 10355.870909357473
+        },
+        "timestamp": 1765236101.7785554
+    },
+    {
+        "frame": 192,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 54,
+            "accel": 121.63414480597136
+        },
+        "timestamp": 1765236102.2933736
+    },
+    {
+        "frame": 193,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 19,
+            "accel": 172.73065978172167
+        },
+        "timestamp": 1765236102.3985622
+    },
+    {
+        "frame": 196,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 863.83006473432
+        },
+        "timestamp": 1765236102.701629
+    },
+    {
+        "frame": 196,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 628.9955482467008
+        },
+        "timestamp": 1765236102.701629
+    },
+    {
+        "frame": 196,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 661.9500406851486
+        },
+        "timestamp": 1765236102.701629
+    },
+    {
+        "frame": 196,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 14,
+            "accel": 258.4685139584522
+        },
+        "timestamp": 1765236102.701629
+    },
+    {
+        "frame": 196,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 23,
+            "accel": 110.61686126979056
+        },
+        "timestamp": 1765236102.701629
+    },
+    {
+        "frame": 196,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 50,
+            "accel": 202.67965731852274
+        },
+        "timestamp": 1765236102.701629
+    },
+    {
+        "frame": 196,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 65,
+            "accel": 5405.008552612973
+        },
+        "timestamp": 1765236102.701629
+    },
+    {
+        "frame": 197,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 524.726064703718
+        },
+        "timestamp": 1765236102.805652
+    },
+    {
+        "frame": 197,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 18,
+            "accel": 2013.211086691638
+        },
+        "timestamp": 1765236102.805652
+    },
+    {
+        "frame": 198,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 1357.617475338317
+        },
+        "timestamp": 1765236102.9061878
+    },
+    {
+        "frame": 198,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 351.5657006038225
+        },
+        "timestamp": 1765236102.9061878
+    },
+    {
+        "frame": 198,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 465.1830794965676
+        },
+        "timestamp": 1765236102.9061878
+    },
+    {
+        "frame": 199,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 30439.070424374877
+        },
+        "timestamp": 1765236103.008202
+    },
+    {
+        "frame": 203,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 1885.6330614323851
+        },
+        "timestamp": 1765236103.419295
+    },
+    {
+        "frame": 204,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 1625.523504123062
+        },
+        "timestamp": 1765236103.525318
+    },
+    {
+        "frame": 204,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 42,
+            "accel": 242.31030308810932
+        },
+        "timestamp": 1765236103.525318
+    },
+    {
+        "frame": 205,
+        "type": "shot_detected",
+        "data": {
+            "speed": 134.89753121046394
+        },
+        "timestamp": 1765236103.6293414
+    },
+    {
+        "frame": 206,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 24,
+            "accel": 2430.5171671559215
+        },
+        "timestamp": 1765236103.7333646
+    },
+    {
+        "frame": 208,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 36,
+            "accel": 526.963441517843
+        },
+        "timestamp": 1765236103.9374106
+    },
+    {
+        "frame": 209,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 466.65744427242686
+        },
+        "timestamp": 1765236104.0394628
+    },
+    {
+        "frame": 210,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 69,
+            "accel": 3067.612739638835
+        },
+        "timestamp": 1765236104.1414874
+    },
+    {
+        "frame": 214,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 55,
+            "accel": 137.2360847604528
+        },
+        "timestamp": 1765236104.5671206
+    },
+    {
+        "frame": 216,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 21,
+            "accel": 25084.497800723788
+        },
+        "timestamp": 1765236104.7792368
+    },
+    {
+        "frame": 221,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 76,
+            "accel": 13051.022811291165
+        },
+        "timestamp": 1765236105.292656
+    },
+    {
+        "frame": 222,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 549.4303288749102
+        },
+        "timestamp": 1765236105.3966794
+    },
+    {
+        "frame": 222,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 261.4581511108355
+        },
+        "timestamp": 1765236105.3966794
+    },
+    {
+        "frame": 222,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 14,
+            "accel": 1236.6414673876413
+        },
+        "timestamp": 1765236105.3966794
+    },
+    {
+        "frame": 222,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 27,
+            "accel": 666.1742961136987
+        },
+        "timestamp": 1765236105.3966794
+    },
+    {
+        "frame": 223,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 891.2657826019724
+        },
+        "timestamp": 1765236105.5017033
+    },
+    {
+        "frame": 223,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 2234.8002289804
+        },
+        "timestamp": 1765236105.5017033
+    },
+    {
+        "frame": 224,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 612.802230108332
+        },
+        "timestamp": 1765236105.6097271
+    },
+    {
+        "frame": 224,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 584.4469833051597
+        },
+        "timestamp": 1765236105.6097271
+    },
+    {
+        "frame": 224,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 135.89769078245766
+        },
+        "timestamp": 1765236105.6097271
+    },
+    {
+        "frame": 226,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 566.0322526372837
+        },
+        "timestamp": 1765236105.814197
+    },
+    {
+        "frame": 226,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 817.319890917523
+        },
+        "timestamp": 1765236105.814197
+    },
+    {
+        "frame": 227,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 87,
+            "accel": 458.7283123346033
+        },
+        "timestamp": 1765236105.9163795
+    },
+    {
+        "frame": 230,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 266.5366585941071
+        },
+        "timestamp": 1765236106.2274714
+    },
+    {
+        "frame": 232,
+        "type": "shot_detected",
+        "data": {
+            "speed": 471.4944847215154
+        },
+        "timestamp": 1765236106.4350314
+    },
+    {
+        "frame": 232,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 89,
+            "accel": 2233.3432581173092
+        },
+        "timestamp": 1765236106.4350314
+    },
+    {
+        "frame": 233,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 91,
+            "accel": 1202.1454477991526
+        },
+        "timestamp": 1765236106.5446
+    },
+    {
+        "frame": 234,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 36,
+            "accel": 276.60680942976296
+        },
+        "timestamp": 1765236106.646643
+    },
+    {
+        "frame": 235,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 474.564857734633
+        },
+        "timestamp": 1765236106.754667
+    },
+    {
+        "frame": 236,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 68,
+            "accel": 1934.4430063869943
+        },
+        "timestamp": 1765236106.8566906
+    },
+    {
+        "frame": 241,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 98,
+            "accel": 1969.7223590277233
+        },
+        "timestamp": 1765236107.3688047
+    },
+    {
+        "frame": 242,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 21,
+            "accel": 205.84184344550778
+        },
+        "timestamp": 1765236107.4738305
+    },
+    {
+        "frame": 242,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 72,
+            "accel": 1364.5765124372595
+        },
+        "timestamp": 1765236107.4738305
+    },
+    {
+        "frame": 243,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 100,
+            "accel": 1176.386013066174
+        },
+        "timestamp": 1765236107.5768533
+    },
+    {
+        "frame": 245,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 37,
+            "accel": 228.33034379433028
+        },
+        "timestamp": 1765236107.779897
+    },
+    {
+        "frame": 248,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 27,
+            "accel": 213.22392935420282
+        },
+        "timestamp": 1765236108.0859048
+    },
+    {
+        "frame": 249,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 593.157707274085
+        },
+        "timestamp": 1765236108.1874316
+    },
+    {
+        "frame": 249,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 380.806658931931
+        },
+        "timestamp": 1765236108.1874316
+    },
+    {
+        "frame": 249,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 14,
+            "accel": 202.69428813631976
+        },
+        "timestamp": 1765236108.1874316
+    },
+    {
+        "frame": 249,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 791.5867741713413
+        },
+        "timestamp": 1765236108.1874316
+    },
+    {
+        "frame": 250,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 532.3058174279687
+        },
+        "timestamp": 1765236108.287017
+    },
+    {
+        "frame": 250,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 310.41526227239586
+        },
+        "timestamp": 1765236108.287017
+    },
+    {
+        "frame": 250,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 705.3935933409754
+        },
+        "timestamp": 1765236108.287017
+    },
+    {
+        "frame": 250,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 31,
+            "accel": 244.55534663350988
+        },
+        "timestamp": 1765236108.287017
+    },
+    {
+        "frame": 250,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 420.49304619589236
+        },
+        "timestamp": 1765236108.287017
+    },
+    {
+        "frame": 252,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 7638.204434730339
+        },
+        "timestamp": 1765236108.4960644
+    },
+    {
+        "frame": 252,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 214.2056132180742
+        },
+        "timestamp": 1765236108.4960644
+    },
+    {
+        "frame": 254,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 32,
+            "accel": 3257.737736614171
+        },
+        "timestamp": 1765236108.705644
+    },
+    {
+        "frame": 256,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 222.547274688921
+        },
+        "timestamp": 1765236108.912691
+    },
+    {
+        "frame": 259,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 87,
+            "accel": 567.6143013555429
+        },
+        "timestamp": 1765236109.2217596
+    },
+    {
+        "frame": 260,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 36,
+            "accel": 225.33147246382583
+        },
+        "timestamp": 1765236109.321782
+    },
+    {
+        "frame": 260,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 91,
+            "accel": 346.5706756623083
+        },
+        "timestamp": 1765236109.321782
+    },
+    {
+        "frame": 261,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 122.1464930011308
+        },
+        "timestamp": 1765236109.424356
+    },
+    {
+        "frame": 261,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 104,
+            "accel": 918.9683526704598
+        },
+        "timestamp": 1765236109.424356
+    },
+    {
+        "frame": 261,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 105,
+            "accel": 1749.8572006085417
+        },
+        "timestamp": 1765236109.424356
+    },
+    {
+        "frame": 262,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 68,
+            "accel": 553.9810128085776
+        },
+        "timestamp": 1765236109.5293815
+    },
+    {
+        "frame": 263,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 30,
+            "accel": 1135.641426838265
+        },
+        "timestamp": 1765236109.6314046
+    },
+    {
+        "frame": 268,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 21,
+            "accel": 211.7787981047833
+        },
+        "timestamp": 1765236110.1575227
+    },
+    {
+        "frame": 268,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 72,
+            "accel": 1464.2160157411613
+        },
+        "timestamp": 1765236110.1575227
+    },
+    {
+        "frame": 272,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 109,
+            "accel": 157.99560573416008
+        },
+        "timestamp": 1765236110.564614
+    },
+    {
+        "frame": 274,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 27,
+            "accel": 340.85621197629916
+        },
+        "timestamp": 1765236110.7766628
+    },
+    {
+        "frame": 275,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 186.8411959494452
+        },
+        "timestamp": 1765236110.8756835
+    },
+    {
+        "frame": 275,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 105.66454139419825
+        },
+        "timestamp": 1765236110.8756835
+    },
+    {
+        "frame": 276,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 618.5817906305444
+        },
+        "timestamp": 1765236110.9807227
+    },
+    {
+        "frame": 276,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 357.02858541565627
+        },
+        "timestamp": 1765236110.9807227
+    },
+    {
+        "frame": 277,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 324.19052798301067
+        },
+        "timestamp": 1765236111.0857313
+    },
+    {
+        "frame": 277,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 445.3639549332113
+        },
+        "timestamp": 1765236111.0857313
+    },
+    {
+        "frame": 277,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 436.5661945919255
+        },
+        "timestamp": 1765236111.0867321
+    },
+    {
+        "frame": 278,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 651.3761407629254
+        },
+        "timestamp": 1765236111.1869895
+    },
+    {
+        "frame": 278,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 10,
+            "accel": 472.250196559423
+        },
+        "timestamp": 1765236111.1869895
+    },
+    {
+        "frame": 279,
+        "type": "shot_detected",
+        "data": {
+            "speed": 334.98431386934203
+        },
+        "timestamp": 1765236111.2882664
+    },
+    {
+        "frame": 281,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 32,
+            "accel": 1252.0952872338287
+        },
+        "timestamp": 1765236111.4903228
+    },
+    {
+        "frame": 282,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 663.4194759956713
+        },
+        "timestamp": 1765236111.5969746
+    },
+    {
+        "frame": 282,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 58,
+            "accel": 291.896505584022
+        },
+        "timestamp": 1765236111.5969746
+    },
+    {
+        "frame": 282,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 60,
+            "accel": 771.1053878159362
+        },
+        "timestamp": 1765236111.5969746
+    },
+    {
+        "frame": 285,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 108.94978009951747
+        },
+        "timestamp": 1765236111.9106245
+    },
+    {
+        "frame": 286,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 36,
+            "accel": 941.9008074189886
+        },
+        "timestamp": 1765236112.01465
+    },
+    {
+        "frame": 286,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 114,
+            "accel": 612.9492315556263
+        },
+        "timestamp": 1765236112.01465
+    },
+    {
+        "frame": 287,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 105,
+            "accel": 271.7672921978213
+        },
+        "timestamp": 1765236112.119673
+    },
+    {
+        "frame": 287,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 117,
+            "accel": 1017.6406605056442
+        },
+        "timestamp": 1765236112.119673
+    },
+    {
+        "frame": 289,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 30,
+            "accel": 564.567864415406
+        },
+        "timestamp": 1765236112.3288507
+    },
+    {
+        "frame": 290,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 82,
+            "accel": 6679.543546183431
+        },
+        "timestamp": 1765236112.432873
+    },
+    {
+        "frame": 294,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 21,
+            "accel": 723.8469324285483
+        },
+        "timestamp": 1765236112.861982
+    },
+    {
+        "frame": 299,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 44,
+            "accel": 308.1089639484652
+        },
+        "timestamp": 1765236113.3710966
+    },
+    {
+        "frame": 301,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 244.4839340696646
+        },
+        "timestamp": 1765236113.5801425
+    },
+    {
+        "frame": 301,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 27,
+            "accel": 236.15745039305693
+        },
+        "timestamp": 1765236113.5801425
+    },
+    {
+        "frame": 302,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 633.553188636435
+        },
+        "timestamp": 1765236113.6861675
+    },
+    {
+        "frame": 302,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 216.76326590312627
+        },
+        "timestamp": 1765236113.6861675
+    },
+    {
+        "frame": 303,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 148.66108577952915
+        },
+        "timestamp": 1765236113.7881894
+    },
+    {
+        "frame": 303,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 156.689438921768
+        },
+        "timestamp": 1765236113.7881894
+    },
+    {
+        "frame": 303,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 144.26376603760573
+        },
+        "timestamp": 1765236113.7881894
+    },
+    {
+        "frame": 303,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 957.6627170459669
+        },
+        "timestamp": 1765236113.7881894
+    },
+    {
+        "frame": 303,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 152.22275350519325
+        },
+        "timestamp": 1765236113.7881894
+    },
+    {
+        "frame": 304,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 185.07116191952164
+        },
+        "timestamp": 1765236113.8862116
+    },
+    {
+        "frame": 307,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 32,
+            "accel": 430.0506124401778
+        },
+        "timestamp": 1765236114.1952822
+    },
+    {
+        "frame": 308,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 17,
+            "accel": 3152.9350220222345
+        },
+        "timestamp": 1765236114.293304
+    },
+    {
+        "frame": 311,
+        "type": "shot_detected",
+        "data": {
+            "speed": 122.6580198331197
+        },
+        "timestamp": 1765236114.6113741
+    },
+    {
+        "frame": 311,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 547.3543222078115
+        },
+        "timestamp": 1765236114.6113741
+    },
+    {
+        "frame": 311,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 68,
+            "accel": 437.901741666878
+        },
+        "timestamp": 1765236114.6113741
+    },
+    {
+        "frame": 312,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 36,
+            "accel": 390.91594362964486
+        },
+        "timestamp": 1765236114.7103972
+    },
+    {
+        "frame": 312,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 114,
+            "accel": 900.9343316380033
+        },
+        "timestamp": 1765236114.7103972
+    },
+    {
+        "frame": 314,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 93,
+            "accel": 313.0234935486488
+        },
+        "timestamp": 1765236114.9146993
+    },
+    {
+        "frame": 315,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 30,
+            "accel": 108.81066847315317
+        },
+        "timestamp": 1765236115.0217237
+    },
+    {
+        "frame": 326,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 44,
+            "accel": 168.62830700559783
+        },
+        "timestamp": 1765236116.1514263
+    },
+    {
+        "frame": 327,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 133.79477695436356
+        },
+        "timestamp": 1765236116.2594504
+    },
+    {
+        "frame": 328,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 410.1493732986654
+        },
+        "timestamp": 1765236116.36251
+    },
+    {
+        "frame": 328,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 421.7106228608177
+        },
+        "timestamp": 1765236116.36251
+    },
+    {
+        "frame": 329,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 314.13147084557164
+        },
+        "timestamp": 1765236116.4680567
+    },
+    {
+        "frame": 329,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 207.16727459799404
+        },
+        "timestamp": 1765236116.4680567
+    },
+    {
+        "frame": 329,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 214.88352011141316
+        },
+        "timestamp": 1765236116.4680567
+    },
+    {
+        "frame": 330,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 482.9000979869869
+        },
+        "timestamp": 1765236116.5740802
+    },
+    {
+        "frame": 330,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 660.3837055687573
+        },
+        "timestamp": 1765236116.5740802
+    },
+    {
+        "frame": 330,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 149.37680776583235
+        },
+        "timestamp": 1765236116.5740802
+    },
+    {
+        "frame": 337,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 295.0451529235701
+        },
+        "timestamp": 1765236117.3203938
+    },
+    {
+        "frame": 338,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 36,
+            "accel": 201.77741107933338
+        },
+        "timestamp": 1765236117.4274163
+    },
+    {
+        "frame": 338,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 68,
+            "accel": 313.8311886663555
+        },
+        "timestamp": 1765236117.4274163
+    },
+    {
+        "frame": 340,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 93,
+            "accel": 108.00996299251845
+        },
+        "timestamp": 1765236117.6334631
+    },
+    {
+        "frame": 341,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 30,
+            "accel": 403.07448056510606
+        },
+        "timestamp": 1765236117.7344854
+    },
+    {
+        "frame": 342,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 114,
+            "accel": 137.28583401111348
+        },
+        "timestamp": 1765236117.84251
+    },
+    {
+        "frame": 347,
+        "type": "shot_detected",
+        "data": {
+            "speed": 48.28145396294066
+        },
+        "timestamp": 1765236118.3456228
+    },
+    {
+        "frame": 352,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 44,
+            "accel": 334.108838342358
+        },
+        "timestamp": 1765236118.850736
+    },
+    {
+        "frame": 354,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 175.91516172250294
+        },
+        "timestamp": 1765236119.0547817
+    },
+    {
+        "frame": 354,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 583.1080581158183
+        },
+        "timestamp": 1765236119.0547817
+    },
+    {
+        "frame": 354,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 137.06047699991197
+        },
+        "timestamp": 1765236119.0547817
+    },
+    {
+        "frame": 355,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 262.5121618488415
+        },
+        "timestamp": 1765236119.158805
+    },
+    {
+        "frame": 355,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 250.9646393920086
+        },
+        "timestamp": 1765236119.158805
+    },
+    {
+        "frame": 356,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 1478.2087909577401
+        },
+        "timestamp": 1765236119.260828
+    },
+    {
+        "frame": 356,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 449.50437799746686
+        },
+        "timestamp": 1765236119.260828
+    },
+    {
+        "frame": 357,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 192.20785018981948
+        },
+        "timestamp": 1765236119.3658516
+    },
+    {
+        "frame": 358,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 64,
+            "accel": 422.7726056509132
+        },
+        "timestamp": 1765236119.4708755
+    },
+    {
+        "frame": 363,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 454.46355637118506
+        },
+        "timestamp": 1765236119.9739885
+    },
+    {
+        "frame": 367,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 30,
+            "accel": 7005.95191186125
+        },
+        "timestamp": 1765236120.3730783
+    },
+    {
+        "frame": 367,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 36,
+            "accel": 105.19900448047466
+        },
+        "timestamp": 1765236120.3730783
+    },
+    {
+        "frame": 367,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 93,
+            "accel": 807.7661145688783
+        },
+        "timestamp": 1765236120.3730783
+    },
+    {
+        "frame": 370,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 624.6011102114059
+        },
+        "timestamp": 1765236120.6811466
+    },
+    {
+        "frame": 374,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 72,
+            "accel": 304.9834953386422
+        },
+        "timestamp": 1765236121.0942392
+    },
+    {
+        "frame": 380,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 661.5286090831986
+        },
+        "timestamp": 1765236121.7293818
+    },
+    {
+        "frame": 380,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 308.19619499678834
+        },
+        "timestamp": 1765236121.7293818
+    },
+    {
+        "frame": 381,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 525.7919714580446
+        },
+        "timestamp": 1765236121.8294048
+    },
+    {
+        "frame": 381,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 215.10996289180517
+        },
+        "timestamp": 1765236121.8294048
+    },
+    {
+        "frame": 381,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 112.35216266336359
+        },
+        "timestamp": 1765236121.8294048
+    },
+    {
+        "frame": 382,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 467.83753569793055
+        },
+        "timestamp": 1765236121.926426
+    },
+    {
+        "frame": 383,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 130.27716367810527
+        },
+        "timestamp": 1765236122.023449
+    },
+    {
+        "frame": 383,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 573.736554882414
+        },
+        "timestamp": 1765236122.023449
+    },
+    {
+        "frame": 384,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 120.55420631664315
+        },
+        "timestamp": 1765236122.1244702
+    },
+    {
+        "frame": 384,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 134,
+            "accel": 358.0072128211226
+        },
+        "timestamp": 1765236122.1244702
+    },
+    {
+        "frame": 389,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 186.72334430854463
+        },
+        "timestamp": 1765236122.6475878
+    },
+    {
+        "frame": 393,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 36,
+            "accel": 101.90263357505316
+        },
+        "timestamp": 1765236123.064321
+    },
+    {
+        "frame": 396,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 387.8737955154413
+        },
+        "timestamp": 1765236123.3972962
+    },
+    {
+        "frame": 396,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 30,
+            "accel": 250.99625389340528
+        },
+        "timestamp": 1765236123.3972962
+    },
+    {
+        "frame": 402,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 64,
+            "accel": 180.6012471093964
+        },
+        "timestamp": 1765236124.0254364
+    },
+    {
+        "frame": 402,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 72,
+            "accel": 587.3541887515348
+        },
+        "timestamp": 1765236124.0254364
+    },
+    {
+        "frame": 402,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 121,
+            "accel": 391.87613678336237
+        },
+        "timestamp": 1765236124.0254364
+    },
+    {
+        "frame": 406,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 180.86562649568577
+        },
+        "timestamp": 1765236124.4465337
+    },
+    {
+        "frame": 406,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 1234.484750022119
+        },
+        "timestamp": 1765236124.4465337
+    },
+    {
+        "frame": 407,
+        "type": "shot_detected",
+        "data": {
+            "speed": 60.93851255336486
+        },
+        "timestamp": 1765236124.5515573
+    },
+    {
+        "frame": 407,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 663.7043674859929
+        },
+        "timestamp": 1765236124.5515573
+    },
+    {
+        "frame": 407,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 310.19917542061216
+        },
+        "timestamp": 1765236124.5515573
+    },
+    {
+        "frame": 408,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 5908.85029072497
+        },
+        "timestamp": 1765236124.6575816
+    },
+    {
+        "frame": 409,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 184.96537599652115
+        },
+        "timestamp": 1765236124.7666056
+    },
+    {
+        "frame": 410,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 152.1546706083672
+        },
+        "timestamp": 1765236124.872633
+    },
+    {
+        "frame": 410,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 177.13868443718735
+        },
+        "timestamp": 1765236124.872633
+    },
+    {
+        "frame": 410,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 137.2371051831028
+        },
+        "timestamp": 1765236124.872633
+    },
+    {
+        "frame": 414,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 142,
+            "accel": 185.08124942263427
+        },
+        "timestamp": 1765236125.2798293
+    },
+    {
+        "frame": 416,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 12,
+            "accel": 1416.662384090606
+        },
+        "timestamp": 1765236125.485247
+    },
+    {
+        "frame": 418,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 61,
+            "accel": 1667.041776781907
+        },
+        "timestamp": 1765236125.6884394
+    },
+    {
+        "frame": 422,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 507.78152618215523
+        },
+        "timestamp": 1765236126.0970676
+    },
+    {
+        "frame": 422,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 30,
+            "accel": 281.4886364457905
+        },
+        "timestamp": 1765236126.0970676
+    },
+    {
+        "frame": 428,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 71,
+            "accel": 2292.281365923321
+        },
+        "timestamp": 1765236126.713529
+    },
+    {
+        "frame": 430,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 64,
+            "accel": 292.69294943264595
+        },
+        "timestamp": 1765236126.9105847
+    },
+    {
+        "frame": 432,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 281.6606165341831
+        },
+        "timestamp": 1765236127.118642
+    },
+    {
+        "frame": 432,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 773.3383056806894
+        },
+        "timestamp": 1765236127.118642
+    },
+    {
+        "frame": 432,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 67,
+            "accel": 2854.7293079029596
+        },
+        "timestamp": 1765236127.118642
+    },
+    {
+        "frame": 432,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 72,
+            "accel": 2309.511877500744
+        },
+        "timestamp": 1765236127.118642
+    },
+    {
+        "frame": 432,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 93,
+            "accel": 731.6311196845905
+        },
+        "timestamp": 1765236127.118642
+    },
+    {
+        "frame": 433,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 617.8485514578729
+        },
+        "timestamp": 1765236127.2211757
+    },
+    {
+        "frame": 434,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 868.8766679726274
+        },
+        "timestamp": 1765236127.3231988
+    },
+    {
+        "frame": 435,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 109.5743593617966
+        },
+        "timestamp": 1765236127.4227247
+    },
+    {
+        "frame": 435,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 308.6989756829302
+        },
+        "timestamp": 1765236127.4227247
+    },
+    {
+        "frame": 436,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 225.78642510881366
+        },
+        "timestamp": 1765236127.5275986
+    },
+    {
+        "frame": 436,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 399.6820295000477
+        },
+        "timestamp": 1765236127.5275986
+    },
+    {
+        "frame": 447,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 152,
+            "accel": 247.24396528544048
+        },
+        "timestamp": 1765236128.667579
+    },
+    {
+        "frame": 448,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 221.91228601174691
+        },
+        "timestamp": 1765236128.7786036
+    },
+    {
+        "frame": 448,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 30,
+            "accel": 841.7019957087775
+        },
+        "timestamp": 1765236128.7786036
+    },
+    {
+        "frame": 453,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 121,
+            "accel": 227.0162593392495
+        },
+        "timestamp": 1765236129.2840798
+    },
+    {
+        "frame": 454,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 71,
+            "accel": 567.3678553265531
+        },
+        "timestamp": 1765236129.3853717
+    },
+    {
+        "frame": 458,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 330.49270480213374
+        },
+        "timestamp": 1765236129.8034754
+    },
+    {
+        "frame": 458,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 153.79158782387057
+        },
+        "timestamp": 1765236129.8034754
+    },
+    {
+        "frame": 460,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 62,
+            "accel": 1003.2025063910908
+        },
+        "timestamp": 1765236130.0048485
+    },
+    {
+        "frame": 461,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 230.70854145895748
+        },
+        "timestamp": 1765236130.1065347
+    },
+    {
+        "frame": 461,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 255.4774289620795
+        },
+        "timestamp": 1765236130.1065347
+    },
+    {
+        "frame": 461,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 766.0493275391964
+        },
+        "timestamp": 1765236130.1065347
+    },
+    {
+        "frame": 462,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 163.87082970893036
+        },
+        "timestamp": 1765236130.2085571
+    },
+    {
+        "frame": 462,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 219.28131865611283
+        },
+        "timestamp": 1765236130.2085571
+    },
+    {
+        "frame": 464,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 44,
+            "accel": 814.8291553481197
+        },
+        "timestamp": 1765236130.4126034
+    },
+    {
+        "frame": 470,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 7,
+            "accel": 479.11125346750845
+        },
+        "timestamp": 1765236131.0351768
+    },
+    {
+        "frame": 470,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 112,
+            "accel": 608.8326272655482
+        },
+        "timestamp": 1765236131.0351768
+    },
+    {
+        "frame": 474,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 473.24075042781715
+        },
+        "timestamp": 1765236131.4443562
+    },
+    {
+        "frame": 475,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 25,
+            "accel": 121.02025316932863
+        },
+        "timestamp": 1765236131.5503788
+    },
+    {
+        "frame": 480,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 71,
+            "accel": 246.01812111261196
+        },
+        "timestamp": 1765236132.0634942
+    },
+    {
+        "frame": 480,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 95,
+            "accel": 156.20422669388398
+        },
+        "timestamp": 1765236132.0634942
+    },
+    {
+        "frame": 484,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 3,
+            "accel": 631.7782929649622
+        },
+        "timestamp": 1765236132.4807827
+    },
+    {
+        "frame": 484,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 4,
+            "accel": 338.8357950902026
+        },
+        "timestamp": 1765236132.4807827
+    },
+    {
+        "frame": 485,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 118,
+            "accel": 648.8244799162633
+        },
+        "timestamp": 1765236132.6048107
+    },
+    {
+        "frame": 486,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 62,
+            "accel": 333.62705592790786
+        },
+        "timestamp": 1765236132.7128348
+    },
+    {
+        "frame": 487,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 6,
+            "accel": 1020.7736024651115
+        },
+        "timestamp": 1765236132.8238602
+    },
+    {
+        "frame": 487,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 13,
+            "accel": 229.51129455388752
+        },
+        "timestamp": 1765236132.8238602
+    },
+    {
+        "frame": 487,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 75,
+            "accel": 523.5823002534884
+        },
+        "timestamp": 1765236132.8238602
+    },
+    {
+        "frame": 488,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 5,
+            "accel": 463.2959697919841
+        },
+        "timestamp": 1765236132.9208858
+    },
+    {
+        "frame": 488,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 8,
+            "accel": 184.47693736662492
+        },
+        "timestamp": 1765236132.9208858
+    },
+    {
+        "frame": 490,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 44,
+            "accel": 598.7045383562939
+        },
+        "timestamp": 1765236133.1359296
+    },
+    {
+        "frame": 491,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 152,
+            "accel": 193.4562373492403
+        },
+        "timestamp": 1765236133.2389526
+    },
+    {
+        "frame": 501,
+        "type": "player_accelerated",
+        "data": {
+            "track_id": 9,
+            "accel": 1265.818587422944
+        },
+        "timestamp": 1765236134.2960968
+    }
+]
