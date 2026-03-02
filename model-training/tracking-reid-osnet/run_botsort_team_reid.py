@@ -45,10 +45,16 @@ import argparse
 import csv
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import sys
 import time
+
+import base64
+import json
+import queue
+import re
+import threading
 
 import cv2
 import numpy as np
@@ -114,6 +120,240 @@ def _cut_detect(prev_bgr: np.ndarray, cur_bgr: np.ndarray, thresh: float = 0.55)
     return corr < thresh
 
 
+def _clamp_int(v: int, lo: int, hi: int) -> int:
+    if v < lo:
+        return lo
+    if v > hi:
+        return hi
+    return int(v)
+
+
+def _jersey_crop_from_player_bbox(frame_bgr: np.ndarray, x1: int, y1: int, x2: int, y2: int) -> Optional[np.ndarray]:
+    if frame_bgr is None or frame_bgr.size == 0:
+        return None
+    h, w = frame_bgr.shape[:2]
+    x1 = _clamp_int(int(x1), 0, w - 1)
+    x2 = _clamp_int(int(x2), 0, w - 1)
+    y1 = _clamp_int(int(y1), 0, h - 1)
+    y2 = _clamp_int(int(y2), 0, h - 1)
+    if x2 <= x1 or y2 <= y1:
+        return None
+
+    bw = x2 - x1
+    bh = y2 - y1
+    cx1 = x1 + int(0.15 * bw)
+    cx2 = x2 - int(0.15 * bw)
+    cy1 = y1 + int(0.20 * bh)
+    cy2 = y1 + int(0.90 * bh)
+
+    cx1 = _clamp_int(cx1, 0, w - 1)
+    cx2 = _clamp_int(cx2, 0, w - 1)
+    cy1 = _clamp_int(cy1, 0, h - 1)
+    cy2 = _clamp_int(cy2, 0, h - 1)
+
+    if cx2 <= cx1 or cy2 <= cy1:
+        crop = frame_bgr[y1:y2, x1:x2]
+    else:
+        crop = frame_bgr[cy1:cy2, cx1:cx2]
+    if crop is None or crop.size == 0:
+        return None
+    return crop
+
+
+def _jersey_visibility_score(crop_bgr: np.ndarray) -> float:
+    """Heuristic score (0..1) estimating if printed digits are visible.
+
+    This is intentionally lightweight (OpenCV-only) to avoid adding OCR deps.
+    Higher score => more likely a readable number.
+    """
+    try:
+        if crop_bgr is None or crop_bgr.size == 0:
+            return 0.0
+
+        hh, ww = crop_bgr.shape[:2]
+        if hh < 20 or ww < 20:
+            return 0.0
+
+        # Focus on central torso area (digits usually centered).
+        x1 = int(ww * 0.15)
+        x2 = int(ww * 0.85)
+        y1 = int(hh * 0.15)
+        y2 = int(hh * 0.85)
+        roi = crop_bgr[y1:y2, x1:x2]
+        if roi.size == 0:
+            roi = crop_bgr
+
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+
+        # Normalize size for stable thresholds.
+        target_h = 160
+        scale = float(target_h) / float(max(1, gray.shape[0]))
+        target_w = max(1, int(gray.shape[1] * scale))
+        gray = cv2.resize(gray, (target_w, target_h), interpolation=cv2.INTER_AREA)
+
+        # Contrast normalize.
+        try:
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+            gray = clahe.apply(gray)
+        except Exception:
+            pass
+
+        blur = cv2.GaussianBlur(gray, (3, 3), 0)
+        med = float(np.median(blur))
+        lo = int(max(0, 0.66 * med))
+        hi = int(min(255, 1.33 * med))
+        if hi <= lo:
+            lo, hi = 40, 120
+
+        edges = cv2.Canny(blur, lo, hi)
+        edge_density = float(np.mean(edges > 0))  # 0..1
+
+        # Text-like blobs via adaptive threshold + contour filtering.
+        th = cv2.adaptiveThreshold(
+            gray,
+            255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            cv2.THRESH_BINARY,
+            21,
+            7,
+        )
+        th = cv2.bitwise_not(th)
+        # small denoise
+        th = cv2.morphologyEx(th, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8), iterations=1)
+
+        contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        good = 0
+        H, W = th.shape[:2]
+        for c in contours:
+            x, y, w, h = cv2.boundingRect(c)
+            if w <= 0 or h <= 0:
+                continue
+            area = float(w * h)
+            if area < 0.002 * float(H * W):
+                continue
+            if area > 0.35 * float(H * W):
+                continue
+            ar = float(w) / float(h)
+            if ar < 0.15 or ar > 6.0:
+                continue
+            if h < 0.12 * H or h > 0.85 * H:
+                continue
+            good += 1
+
+        contour_score = min(1.0, float(good) / 6.0)
+
+        # Map typical edge densities to 0..1 (numbers tend to create some edges but not too noisy).
+        edge_score = (edge_density - 0.01) / 0.14
+        edge_score = float(max(0.0, min(1.0, edge_score)))
+
+        score = 0.65 * edge_score + 0.35 * contour_score
+        return float(max(0.0, min(1.0, score)))
+    except Exception:
+        return 0.0
+
+
+def _normalize_base_url(url: str) -> str:
+    u = str(url or "").strip()
+    if not u:
+        return ""
+    return u[:-1] if u.endswith("/") else u
+
+
+def _parse_jersey_number_from_text(text: str) -> Optional[str]:
+    if not text:
+        return None
+    t = str(text).strip()
+    if t == "-1":
+        return "-1"
+    t = t.split()[0] if t.split() else t
+    if not re.fullmatch(r"\d{1,2}", t):
+        return None
+    try:
+        n = int(t)
+    except Exception:
+        return None
+    if 0 <= n <= 99:
+        return str(n)
+    return None
+
+
+def _qwen_vl_openai_compatible(
+    *,
+    crop_bgr: np.ndarray,
+    base_url: str,
+    model: str,
+    prompt: str,
+    timeout_sec: float = 30.0,
+) -> Tuple[Optional[str], Optional[str]]:
+    """Best-effort OpenAI-compatible vision call (llama.cpp/vLLM style)."""
+    try:
+        import httpx
+    except Exception:
+        return None, None
+
+    base = _normalize_base_url(base_url)
+    if not base:
+        return None, None
+
+    try:
+        ok, buf = cv2.imencode(".jpg", crop_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 92])
+        if not ok:
+            return None, None
+        b64 = base64.b64encode(buf.tobytes()).decode("utf-8")
+        data_url = f"data:image/jpeg;base64,{b64}"
+    except Exception:
+        return None, None
+
+    payload = {
+        "model": str(model or "qwen3vl8b"),
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": str(prompt or "")},
+                    {"type": "image_url", "image_url": {"url": data_url}},
+                ],
+            }
+        ],
+        "temperature": 0.0,
+        "max_tokens": 16,
+    }
+
+    url = f"{base}/v1/chat/completions"
+    try:
+        with httpx.Client(timeout=float(timeout_sec)) as client:
+            r = client.post(url, json=payload)
+            if r.status_code != 200:
+                return None, None
+            data = r.json()
+    except Exception:
+        return None, None
+
+    raw = ""
+    try:
+        choices = data.get("choices") or []
+        msg = (choices[0] or {}).get("message") or {}
+        raw = str(msg.get("content") or "").strip()
+    except Exception:
+        raw = ""
+
+    jersey = _parse_jersey_number_from_text(raw)
+    return jersey, raw
+
+
+DEFAULT_JERSEY_PROMPT = (
+    "You are reading a football jersey.\n\n"
+    "Visually read the number printed on the player's shirt.\n\n"
+    "Rules:\n\n"
+    "* Output digits only.\n"
+    "* If no number is visible or readable, output: -1\n"
+    "* Do not guess.\n"
+    "* Do not describe the image.\n"
+    "* Do not output words.\n\n"
+    "Return only the final answer.\n"
+)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", type=str, default=DEFAULT_CONFIG)
@@ -123,6 +363,21 @@ def main() -> None:
     ap.add_argument("--device", type=str, default=None)
     ap.add_argument("--save_video", type=str, default=None)
     ap.add_argument("--save_txt", type=str, default=None)
+
+    # Optional: jersey inference while tracking runs (best-effort)
+    ap.add_argument("--jersey_enable", type=int, default=0)
+    ap.add_argument("--jersey_qwen_url", type=str, default="http://localhost:8080/")
+    ap.add_argument("--jersey_model", type=str, default="qwen3vl8b")
+    ap.add_argument("--jersey_prompt", type=str, default=DEFAULT_JERSEY_PROMPT)
+    ap.add_argument("--jersey_min_frame_gap", type=int, default=20)
+    ap.add_argument("--jersey_max_samples_per_track", type=int, default=3)
+    ap.add_argument("--jersey_min_det_conf", type=float, default=0.55)
+    ap.add_argument("--jersey_min_box_area", type=int, default=1600)
+    ap.add_argument("--jersey_frame_topk", type=int, default=5)
+    ap.add_argument("--jersey_crops_dir", type=str, default=None)
+    ap.add_argument("--jersey_out_json", type=str, default=None)
+    ap.add_argument("--jersey_vis_filter", type=int, default=0)
+    ap.add_argument("--jersey_vis_min_score", type=float, default=0.12)
 
     ap.add_argument("--w_iou", type=float, default=None)
     ap.add_argument("--w_app", type=float, default=None)
@@ -342,14 +597,72 @@ def main() -> None:
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out_vid = cv2.VideoWriter(str(out_path), fourcc, float(fps), (w, h))
 
+    jersey_enabled = bool(int(args.jersey_enable or 0)) and bool(cfg.save_txt)
+
+    jersey_lock = threading.Lock()
+    jersey_final: Dict[int, str] = {}
+    jersey_attempts: Dict[int, int] = {}
+    jersey_last_q: Dict[int, int] = {}
+    jersey_raw: Dict[int, List[str]] = {}
+    jersey_meta: Dict[int, Dict[str, Any]] = {}
+
+    jersey_q: "queue.Queue[Tuple[int, int, np.ndarray]]" = queue.Queue(maxsize=64)
+    jersey_stop = threading.Event()
+
+    crops_dir: Optional[Path] = None
+    if jersey_enabled and args.jersey_crops_dir:
+        try:
+            crops_dir = Path(str(args.jersey_crops_dir)).resolve()
+            crops_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            crops_dir = None
+
+    def jersey_worker() -> None:
+        while (not jersey_stop.is_set()) or (not jersey_q.empty()):
+            try:
+                tid, fid, crop = jersey_q.get(timeout=0.2)
+            except Exception:
+                continue
+            try:
+                jersey, raw = _qwen_vl_openai_compatible(
+                    crop_bgr=crop,
+                    base_url=str(args.jersey_qwen_url),
+                    model=str(args.jersey_model),
+                    prompt=str(args.jersey_prompt),
+                )
+            except Exception:
+                jersey, raw = None, None
+
+            if raw:
+                with jersey_lock:
+                    jersey_raw.setdefault(int(tid), []).append(str(raw))
+
+            if jersey is not None:
+                js = str(jersey).strip()
+                if js != "-1":
+                    with jersey_lock:
+                        if int(tid) not in jersey_final:
+                            jersey_final[int(tid)] = js
+
+            try:
+                jersey_q.task_done()
+            except Exception:
+                pass
+
+    jersey_thread = None
+    if jersey_enabled:
+        jersey_thread = threading.Thread(target=jersey_worker, daemon=True)
+        jersey_thread.start()
+
     out_f = None
     if cfg.save_txt:
         out_path = Path(cfg.save_txt)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_f = open(out_path, "w", encoding="utf-8")
-        out_f.write(
-            "frame_id,track_id,cls_id,conf,x1,y1,x2,y2,team_id,relinked,relink_source_id,relink_sim,relink_inactive_age,assoc_stage,assoc_iou,assoc_app_sim,assoc_osnet_sim\n"
-        )
+        header = "frame_id,track_id,cls_id,conf,x1,y1,x2,y2,team_id,relinked,relink_source_id,relink_sim,relink_inactive_age,assoc_stage,assoc_iou,assoc_app_sim,assoc_osnet_sim"
+        if jersey_enabled:
+            header += ",jersey_number"
+        out_f.write(header + "\n")
 
     prev_frame = None
     frame_id = 0
@@ -576,9 +889,28 @@ def main() -> None:
                     assoc_iou = float(getattr(t, "last_assoc_iou", 0.0))
                     assoc_app_sim = float(getattr(t, "last_assoc_app_sim", 0.0))
                     assoc_osnet_sim = float(getattr(t, "last_assoc_osnet_sim", 0.0))
-                    out_f.write(
-                        f"{frame_id},{t.track_id},{t.cls_id},{t.conf:.4f},{x1},{y1},{x2},{y2},{team_id},{relinked},{relink_source_id},{relink_sim:.4f},{relink_inactive_age},{assoc_stage},{assoc_iou:.4f},{assoc_app_sim:.4f},{assoc_osnet_sim:.4f}\n"
-                    )
+
+                    jersey_val = ""
+                    if jersey_enabled and int(t.cls_id) == int(player_id):
+                        with jersey_lock:
+                            m = jersey_meta.get(int(t.track_id))
+                            if m is None:
+                                jersey_meta[int(t.track_id)] = {
+                                    "track_id": int(t.track_id),
+                                    "team_id": int(team_id),
+                                    "first_frame": int(frame_id),
+                                    "last_frame": int(frame_id),
+                                }
+                            else:
+                                m["team_id"] = int(team_id)
+                                m["last_frame"] = int(frame_id)
+
+                            jersey_val = str(jersey_final.get(int(t.track_id), "-1"))
+
+                    line = f"{frame_id},{t.track_id},{t.cls_id},{t.conf:.4f},{x1},{y1},{x2},{y2},{team_id},{relinked},{relink_source_id},{relink_sim:.4f},{relink_inactive_age},{assoc_stage},{assoc_iou:.4f},{assoc_app_sim:.4f},{assoc_osnet_sim:.4f}"
+                    if jersey_enabled:
+                        line += f",{jersey_val}"
+                    out_f.write(line + "\n")
 
                 # Update tracklet summary (for postprocess merging)
                 rec = tracklets.get(int(t.track_id))
@@ -602,6 +934,64 @@ def main() -> None:
                     e = e / (np.linalg.norm(e) + 1e-6)
                     rec["emb"] = e
 
+            # Enqueue up to top-K jersey queries for players (non-blocking).
+            if jersey_enabled and confirmed:
+                cand: List[Tuple[float, int, np.ndarray, float]] = []
+                for t in confirmed:
+                    try:
+                        if int(t.cls_id) != int(player_id):
+                            continue
+                        tid = int(t.track_id)
+                        with jersey_lock:
+                            if tid in jersey_final:
+                                continue
+                        att = int(jersey_attempts.get(tid, 0))
+                        if att >= int(args.jersey_max_samples_per_track):
+                            continue
+                        last_q = int(jersey_last_q.get(tid, -10**9))
+                        if int(frame_id) - int(last_q) < int(args.jersey_min_frame_gap):
+                            continue
+                        x1i, y1i, x2i, y2i = t.bbox_xyxy.astype(int)
+                        area = max(0, int(x2i) - int(x1i)) * max(0, int(y2i) - int(y1i))
+                        if area < int(args.jersey_min_box_area):
+                            continue
+                        if float(t.conf) < float(args.jersey_min_det_conf):
+                            continue
+
+                        crop = _jersey_crop_from_player_bbox(frame, int(x1i), int(y1i), int(x2i), int(y2i))
+                        if crop is None:
+                            continue
+                        vis = _jersey_visibility_score(crop)
+                        if bool(int(args.jersey_vis_filter or 0)) and att > 0:
+                            if float(vis) < float(args.jersey_vis_min_score):
+                                continue
+
+                        # Prefer crops with both large area/conf and visible digits.
+                        score = float(area) * float(t.conf) * (0.35 + float(vis))
+                        cand.append((score, tid, crop, float(vis)))
+                    except Exception:
+                        continue
+
+                if cand:
+                    cand.sort(key=lambda x: x[0], reverse=True)
+                    for _, tid, crop, _vis in cand[: max(1, int(args.jersey_frame_topk))]:
+                        try:
+                            if crops_dir is not None:
+                                try:
+                                    cv2.imwrite(str(crops_dir / f"track{tid}_frame{frame_id}.jpg"), crop)
+                                except Exception:
+                                    pass
+
+                            jersey_attempts[int(tid)] = int(jersey_attempts.get(int(tid), 0)) + 1
+                            jersey_last_q[int(tid)] = int(frame_id)
+
+                            try:
+                                jersey_q.put_nowait((int(tid), int(frame_id), crop))
+                            except Exception:
+                                pass
+                        except Exception:
+                            continue
+
             bt = tracker.get_ball_track()
             if bt is not None:
                 x1, y1, x2, y2 = bt.bbox_xyxy.astype(int)
@@ -616,6 +1006,42 @@ def main() -> None:
         out_vid.release()
     if out_f is not None:
         out_f.close()
+
+    if jersey_enabled:
+        try:
+            jersey_stop.set()
+        except Exception:
+            pass
+        try:
+            if jersey_thread is not None:
+                jersey_thread.join(timeout=2.0)
+        except Exception:
+            pass
+
+        try:
+            out_json = str(args.jersey_out_json or "").strip()
+            if (not out_json) and cfg.save_txt:
+                out_json = str(Path(cfg.save_txt).with_suffix(".jersey.json"))
+            if out_json:
+                payload: List[Dict[str, Any]] = []
+                with jersey_lock:
+                    for tid, meta in jersey_meta.items():
+                        jersey_num = str(jersey_final.get(int(tid), "-1"))
+                        payload.append(
+                            {
+                                **(meta or {}),
+                                "jersey_number": jersey_num,
+                                "confidence": 1.0 if jersey_num != "-1" else 0.0,
+                                "attempts": int(jersey_attempts.get(int(tid), 0)),
+                                "raw": (jersey_raw.get(int(tid), []) or [])[-3:],
+                            }
+                        )
+                p = Path(out_json)
+                p.parent.mkdir(parents=True, exist_ok=True)
+                with open(p, "w", encoding="utf-8") as f:
+                    json.dump(payload, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
 
     # Optional postprocess: merge tracklets and rewrite IDs
     if cfg.save_txt and bool(cfg.get("postprocess.merge_tracklets", False)):

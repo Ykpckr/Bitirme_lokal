@@ -556,6 +556,36 @@ class RunFullPipelineRequest(BaseModel):
     detector_weights: Optional[str] = None
     reid_weights: Optional[str] = None
 
+    # jersey number recognition (Qwen-VL)
+    run_jersey_number_recognition: bool = True
+    qwen_vl_url: str = "http://localhost:8080/"
+    qwen_vl_model: str = "qwen3vl8b"
+    jersey_prompt: str = (
+        "You are reading a football jersey.\n\n"
+        "Visually read the number printed on the player's shirt.\n\n"
+        "Rules:\n\n"
+        "* Output digits only.\n"
+        "* If no number is visible or readable, output: -1\n"
+        "* Do not guess.\n"
+        "* Do not describe the image.\n"
+        "* Do not output words.\n\n"
+        "Return only the final answer.\n"
+    )
+    # 0 or negative means: no cap (process all player tracks)
+    jersey_max_tracks: int = 0
+    jersey_max_samples_per_track: int = 30
+    jersey_min_det_conf: float = 0.55
+    jersey_min_box_area: int = 1600
+    jersey_min_frame_gap: int = 10
+    jersey_frame_topk: int = 20
+    jersey_crops_dir: Optional[str] = None
+    jersey_vis_filter: bool = True
+    jersey_vis_min_score: float = 0.12
+    jersey_in_tracking: bool = True
+    jersey_merge_same_number: bool = True
+    jersey_merge_min_confidence: float = 0.60
+    jersey_merge_max_overlap_frames: int = 5
+
     # heuristics
     possession_dist_norm: float = 0.08
     possession_stable_frames: int = 6
@@ -589,6 +619,23 @@ async def run_full_pipeline(req: RunFullPipelineRequest):
         checkpoint_path=req.checkpoint_path,
         action_threshold=float(req.action_threshold),
         action_nms_window_sec=float(req.action_nms_window_sec),
+        run_jersey_number_recognition=bool(req.run_jersey_number_recognition),
+        qwen_vl_url=str(req.qwen_vl_url),
+        qwen_vl_model=str(req.qwen_vl_model),
+        jersey_prompt=str(req.jersey_prompt),
+        jersey_max_tracks=int(req.jersey_max_tracks),
+        jersey_max_samples_per_track=int(req.jersey_max_samples_per_track),
+        jersey_min_det_conf=float(req.jersey_min_det_conf),
+        jersey_min_box_area=int(req.jersey_min_box_area),
+        jersey_min_frame_gap=int(req.jersey_min_frame_gap),
+        jersey_frame_topk=int(req.jersey_frame_topk),
+        jersey_crops_dir=req.jersey_crops_dir,
+        jersey_vis_filter=bool(req.jersey_vis_filter),
+        jersey_vis_min_score=float(req.jersey_vis_min_score),
+        jersey_in_tracking=bool(req.jersey_in_tracking),
+        jersey_merge_same_number=bool(req.jersey_merge_same_number),
+        jersey_merge_min_confidence=float(req.jersey_merge_min_confidence),
+        jersey_merge_max_overlap_frames=int(req.jersey_merge_max_overlap_frames),
         possession_dist_norm=float(req.possession_dist_norm),
         possession_stable_frames=int(req.possession_stable_frames),
         possession_stride_frames=int(req.possession_stride_frames),
@@ -683,6 +730,19 @@ async def run_full_pipeline_async(req: RunFullPipelineRequest):
                 checkpoint_path=req.checkpoint_path,
                 action_threshold=float(req.action_threshold),
                 action_nms_window_sec=float(req.action_nms_window_sec),
+                run_jersey_number_recognition=bool(req.run_jersey_number_recognition),
+                qwen_vl_url=str(req.qwen_vl_url),
+                qwen_vl_model=str(req.qwen_vl_model),
+                jersey_prompt=str(req.jersey_prompt),
+                jersey_max_tracks=int(req.jersey_max_tracks),
+                jersey_max_samples_per_track=int(req.jersey_max_samples_per_track),
+                jersey_min_det_conf=float(req.jersey_min_det_conf),
+                jersey_min_box_area=int(req.jersey_min_box_area),
+                jersey_min_frame_gap=int(req.jersey_min_frame_gap),
+                jersey_in_tracking=bool(req.jersey_in_tracking),
+                jersey_merge_same_number=bool(req.jersey_merge_same_number),
+                jersey_merge_min_confidence=float(req.jersey_merge_min_confidence),
+                jersey_merge_max_overlap_frames=int(req.jersey_merge_max_overlap_frames),
                 possession_dist_norm=float(req.possession_dist_norm),
                 possession_stable_frames=int(req.possession_stable_frames),
                 possession_stride_frames=int(req.possession_stride_frames),
