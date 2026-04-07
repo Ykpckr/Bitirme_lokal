@@ -75,6 +75,11 @@ DEFAULT_REID = r"C:\Users\Admin\Desktop\sn-reid\sn-reid\log\model\model.pth.tar-
 DEFAULT_CONFIG = str((THIS_DIR / "config.yaml").resolve())
 
 
+# Special output track-id ranges (keeps numeric CSV schema, but stable/reserved IDs)
+SPECIAL_TRACK_ID_BASE_GOALKEEPER = 800_000_000
+SPECIAL_TRACK_ID_REFEREE = 900_000_001
+
+
 def _set_determinism(seed: int) -> None:
     import random
 
@@ -379,6 +384,12 @@ def main() -> None:
     ap.add_argument("--jersey_vis_filter", type=int, default=0)
     ap.add_argument("--jersey_vis_min_score", type=float, default=0.12)
 
+    # Optional: heuristically assign a special ID to goalkeepers (still detected as Player)
+    ap.add_argument("--goalkeeper_special_id", type=int, default=1)
+    ap.add_argument("--goalkeeper_edge_frac", type=float, default=0.12)
+    ap.add_argument("--goalkeeper_min_frames", type=int, default=30)
+    ap.add_argument("--goalkeeper_lock_threshold", type=float, default=0.70)
+
     ap.add_argument("--w_iou", type=float, default=None)
     ap.add_argument("--w_app", type=float, default=None)
     ap.add_argument("--w_team", type=float, default=None)
@@ -599,6 +610,8 @@ def main() -> None:
 
     jersey_enabled = bool(int(args.jersey_enable or 0)) and bool(cfg.save_txt)
 
+    goalkeeper_enabled = bool(int(args.goalkeeper_special_id or 0))
+
     jersey_lock = threading.Lock()
     jersey_final: Dict[int, str] = {}
     jersey_attempts: Dict[int, int] = {}
@@ -690,6 +703,61 @@ def main() -> None:
 
     # Tracklet summaries for optional postprocess merging
     tracklets: Dict[int, Dict[str, object]] = {}
+
+    # Goalkeeper heuristic stats (since detector has no explicit GK class)
+    # tid -> {frames,left,right,team}
+    gk_stats: Dict[int, Dict[str, int]] = {}
+    locked_goalkeeper_by_team: Dict[int, int] = {}
+
+    def _special_goalkeeper_id(team_id: int) -> int:
+        # Reserve 800000001 for team 0, 800000002 for team 1 (others fall back to normal)
+        if int(team_id) == 0:
+            return SPECIAL_TRACK_ID_BASE_GOALKEEPER + 1
+        if int(team_id) == 1:
+            return SPECIAL_TRACK_ID_BASE_GOALKEEPER + 2
+        return 0
+
+    def _output_track_id(track_id: int, cls_id: int, team_id: int) -> int:
+        if int(cls_id) == int(referee_id):
+            return int(SPECIAL_TRACK_ID_REFEREE)
+        if goalkeeper_enabled and int(cls_id) == int(player_id):
+            gk_tid = locked_goalkeeper_by_team.get(int(team_id))
+            if gk_tid is not None and int(gk_tid) == int(track_id):
+                sid = _special_goalkeeper_id(int(team_id))
+                if sid > 0:
+                    return int(sid)
+        return int(track_id)
+
+    def _is_goalkeeper_track(track_id: int, cls_id: int, team_id: int) -> bool:
+        if not goalkeeper_enabled:
+            return False
+        if int(cls_id) != int(player_id):
+            return False
+        gk_tid = locked_goalkeeper_by_team.get(int(team_id))
+        return gk_tid is not None and int(gk_tid) == int(track_id)
+
+    def _is_goalkeeper_candidate(track_id: int, cls_id: int, team_id: int) -> bool:
+        """Early GK suppression: avoid jersey queries for tracks that look like goalkeepers.
+
+        This is intentionally conservative: it only triggers once we have a few frames
+        of evidence that the track lives near the extreme left/right edges.
+        """
+        if not goalkeeper_enabled:
+            return False
+        if int(cls_id) != int(player_id):
+            return False
+        if int(team_id) not in (0, 1):
+            return False
+        st = gk_stats.get(int(track_id))
+        if not isinstance(st, dict):
+            return False
+        fr = int(st.get("frames", 0) or 0)
+        if fr < max(5, int(args.goalkeeper_min_frames) // 3):
+            return False
+        left = int(st.get("left", 0) or 0)
+        right = int(st.get("right", 0) or 0)
+        ratio = max(float(left), float(right)) / float(max(1, fr))
+        return ratio >= float(args.goalkeeper_lock_threshold) * 0.90
 
     def jersey_color_bgr(crop_bgr: np.ndarray) -> Tuple[int, int, int]:
         """Estimate jersey color for drawing (torso + green mask)."""
@@ -855,6 +923,23 @@ def main() -> None:
             for t in confirmed:
                 x1, y1, x2, y2 = t.bbox_xyxy.astype(int)
                 team_id = int(t.team_id)
+
+                # Update GK heuristic stats for players.
+                if goalkeeper_enabled and int(t.cls_id) == int(player_id):
+                    try:
+                        cx = 0.5 * (float(x1) + float(x2))
+                        left_edge = 1 if cx <= float(w) * float(args.goalkeeper_edge_frac) else 0
+                        right_edge = 1 if cx >= float(w) * (1.0 - float(args.goalkeeper_edge_frac)) else 0
+                        rec = gk_stats.get(int(t.track_id))
+                        if rec is None:
+                            rec = {"frames": 0, "left": 0, "right": 0, "team": int(team_id)}
+                            gk_stats[int(t.track_id)] = rec
+                        rec["frames"] = int(rec.get("frames", 0)) + 1
+                        rec["left"] = int(rec.get("left", 0)) + int(left_edge)
+                        rec["right"] = int(rec.get("right", 0)) + int(right_edge)
+                        rec["team"] = int(team_id)
+                    except Exception:
+                        pass
                 if int(t.cls_id) == referee_id:
                     xi1, yi1, xi2, yi2 = max(0, x1), max(0, y1), min(w, x2), min(h, y2)
                     crop = frame[yi1:yi2, xi1:xi2]
@@ -863,15 +948,47 @@ def main() -> None:
                     color = color_map.get(team_id, (200, 200, 200))
 
                 cv2.rectangle(draw, (x1, y1), (x2, y2), color, 2)
+
+                out_tid_for_draw = _output_track_id(int(t.track_id), int(t.cls_id), int(team_id))
                 cv2.putText(
                     draw,
-                    (f"ID:{t.track_id} R" if int(t.cls_id) == referee_id else f"ID:{t.track_id} T:{team_id}"),
+                    (
+                        f"ID:{out_tid_for_draw} R"
+                        if int(t.cls_id) == referee_id
+                        else (f"ID:{out_tid_for_draw} GK" if _is_goalkeeper_track(int(t.track_id), int(t.cls_id), int(team_id)) else f"ID:{out_tid_for_draw} T:{team_id}")
+                    ),
                     (x1, max(0, y1 - 8)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.6,
                     color,
                     2,
                 )
+
+                # Try to lock goalkeepers per team once we have enough evidence.
+                if goalkeeper_enabled and int(t.cls_id) == int(player_id):
+                    try:
+                        team = int(team_id)
+                        if team in (0, 1) and team >= 0:
+                            best_tid = locked_goalkeeper_by_team.get(team)
+                            best_score = -1.0
+                            best_frames = 0
+                            if best_tid is not None and int(best_tid) in gk_stats:
+                                st = gk_stats[int(best_tid)]
+                                fr = max(1, int(st.get("frames", 0)))
+                                sc = max(float(st.get("left", 0)) / fr, float(st.get("right", 0)) / fr)
+                                best_score = sc
+                                best_frames = int(st.get("frames", 0))
+
+                            # Evaluate current track as a candidate.
+                            st2 = gk_stats.get(int(t.track_id)) or {}
+                            fr2 = int(st2.get("frames", 0))
+                            if fr2 >= int(args.goalkeeper_min_frames):
+                                sc2 = max(float(st2.get("left", 0)) / max(1, fr2), float(st2.get("right", 0)) / max(1, fr2))
+                                if sc2 >= float(args.goalkeeper_lock_threshold):
+                                    if (sc2 > best_score + 1e-6) or (abs(sc2 - best_score) <= 1e-6 and fr2 > best_frames):
+                                        locked_goalkeeper_by_team[team] = int(t.track_id)
+                    except Exception:
+                        pass
 
                 if out_f is not None:
                     relinked = 0
@@ -891,7 +1008,7 @@ def main() -> None:
                     assoc_osnet_sim = float(getattr(t, "last_assoc_osnet_sim", 0.0))
 
                     jersey_val = ""
-                    if jersey_enabled and int(t.cls_id) == int(player_id):
+                    if jersey_enabled and int(t.cls_id) == int(player_id) and (not _is_goalkeeper_track(int(t.track_id), int(t.cls_id), int(team_id))):
                         with jersey_lock:
                             m = jersey_meta.get(int(t.track_id))
                             if m is None:
@@ -907,7 +1024,12 @@ def main() -> None:
 
                             jersey_val = str(jersey_final.get(int(t.track_id), "-1"))
 
-                    line = f"{frame_id},{t.track_id},{t.cls_id},{t.conf:.4f},{x1},{y1},{x2},{y2},{team_id},{relinked},{relink_source_id},{relink_sim:.4f},{relink_inactive_age},{assoc_stage},{assoc_iou:.4f},{assoc_app_sim:.4f},{assoc_osnet_sim:.4f}"
+                    out_tid = _output_track_id(int(t.track_id), int(t.cls_id), int(team_id))
+                    out_relink_source = int(relink_source_id)
+                    if out_relink_source > 0:
+                        out_relink_source = _output_track_id(int(out_relink_source), int(t.cls_id), int(team_id))
+
+                    line = f"{frame_id},{out_tid},{t.cls_id},{t.conf:.4f},{x1},{y1},{x2},{y2},{team_id},{relinked},{out_relink_source},{relink_sim:.4f},{relink_inactive_age},{assoc_stage},{assoc_iou:.4f},{assoc_app_sim:.4f},{assoc_osnet_sim:.4f}"
                     if jersey_enabled:
                         line += f",{jersey_val}"
                     out_f.write(line + "\n")
@@ -942,6 +1064,10 @@ def main() -> None:
                         if int(t.cls_id) != int(player_id):
                             continue
                         tid = int(t.track_id)
+                        if _is_goalkeeper_track(int(t.track_id), int(t.cls_id), int(t.team_id)):
+                            continue
+                        if _is_goalkeeper_candidate(int(t.track_id), int(t.cls_id), int(t.team_id)):
+                            continue
                         with jersey_lock:
                             if tid in jersey_final:
                                 continue
@@ -1055,6 +1181,10 @@ def main() -> None:
             parent: Dict[int, int] = {tid: tid for tid in tracklets.keys()}
 
             def find(x: int) -> int:
+                # Some rows may contain special/overridden IDs (e.g., referee/GK)
+                # that are not present in `tracklets`. Treat them as standalone.
+                if x not in parent:
+                    parent[x] = x
                 while parent[x] != x:
                     parent[x] = parent[parent[x]]
                     x = parent[x]

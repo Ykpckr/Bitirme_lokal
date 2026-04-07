@@ -39,12 +39,13 @@ const DETECTION_COLORS: Record<string, { stroke: string; fill: string; label: st
 
 export function DebugPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mapVideoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameCanvasRef = useRef<HTMLCanvasElement>(null);
   const lastFrameSendTime = useRef(0);
   
   const {
-    debugUrl, selectVideo, isPlaying, setIsPlaying,
+    debugUrl, mapUrl, selectVideo, isPlaying, setIsPlaying,
     currentTime, setCurrentTime, addFrameData, 
     frameData, setCurrentFrame, currentFrame, 
     isProcessingFrame, setIsProcessingFrame
@@ -65,6 +66,19 @@ export function DebugPlayer() {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    const syncSlave = () => {
+      const mv = mapVideoRef.current;
+      if (!mv) return;
+      try {
+        if ((mv.readyState || 0) < 1) return;
+        const dt = Math.abs((mv.currentTime || 0) - (video.currentTime || 0));
+        if (dt > 0.15) mv.currentTime = video.currentTime || 0;
+      } catch (e) {
+        // ignore
+      }
+    };
+
     const onLoaded = () => {
       setDuration(video.duration || 0);
       // sync playback position from store
@@ -75,20 +89,45 @@ export function DebugPlayer() {
       } catch (e) {
         // ignore
       }
+
+      // Sync map video (if any)
+      try {
+        const mv = mapVideoRef.current;
+        if (mv && (mv.readyState || 0) >= 1) {
+          mv.currentTime = currentTime || 0;
+        }
+      } catch (e) {
+        // ignore
+      }
+
       setPlayerStatus('ready');
       // resume playing if store indicates playback
       if (isPlaying) {
         video.play().catch(() => {});
+        mapVideoRef.current?.play?.().catch?.(() => {});
       }
     };
     const onPlay = () => { setIsPlaying(true); setPlayerStatus('playing'); };
     const onPause = () => { setIsPlaying(false); setPlayerStatus('paused'); };
-    const onTime = () => { setCurrentTime(video.currentTime); };
+    const onTime = () => { setCurrentTime(video.currentTime); syncSlave(); };
+
+    const onPlaySync = () => {
+      try {
+        if (mapVideoRef.current) mapVideoRef.current.play().catch(() => {});
+      } catch {}
+    };
+    const onPauseSync = () => {
+      try {
+        if (mapVideoRef.current) mapVideoRef.current.pause();
+      } catch {}
+    };
 
     video.addEventListener('loadedmetadata', onLoaded);
     video.addEventListener('play', onPlay);
     video.addEventListener('pause', onPause);
     video.addEventListener('timeupdate', onTime);
+    video.addEventListener('play', onPlaySync);
+    video.addEventListener('pause', onPauseSync);
 
     // If we already have frame data, mark backend as online
     if (frameData && frameData.length > 0) setBackendStatus('online');
@@ -98,8 +137,24 @@ export function DebugPlayer() {
       video.removeEventListener('play', onPlay);
       video.removeEventListener('pause', onPause);
       video.removeEventListener('timeupdate', onTime);
+      video.removeEventListener('play', onPlaySync);
+      video.removeEventListener('pause', onPauseSync);
     };
   }, [frameData, setCurrentTime, setIsPlaying, currentTime, isPlaying]);
+
+  useEffect(() => {
+    const mv = mapVideoRef.current;
+    if (!mv) return;
+    const onLoaded = () => {
+      try {
+        if ((mv.readyState || 0) >= 1) mv.currentTime = currentTime || 0;
+      } catch {}
+    };
+    mv.addEventListener('loadedmetadata', onLoaded);
+    return () => {
+      mv.removeEventListener('loadedmetadata', onLoaded);
+    };
+  }, [currentTime, mapUrl]);
 
   // --- UI and Display Logic (mostly unchanged) ---
   
@@ -152,7 +207,11 @@ export function DebugPlayer() {
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
-    if (video) video.currentTime = parseFloat(e.target.value);
+    const t = parseFloat(e.target.value);
+    if (video) video.currentTime = t;
+    if (mapVideoRef.current) {
+      try { mapVideoRef.current.currentTime = t; } catch {}
+    }
   };
   
   const handleClose = () => { selectVideo(null); };
@@ -166,9 +225,17 @@ export function DebugPlayer() {
       <canvas ref={frameCanvasRef} className="hidden" />
       <div>
         <Card className="overflow-hidden bg-black/5 dark:bg-black/20">
-          <div className="relative aspect-video bg-black">
-            <video ref={videoRef} src={debugUrl} className="absolute inset-0 w-full h-full object-contain" controls={false} muted crossOrigin="anonymous" />
-            <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ imageRendering: "pixelated" }} />
+          <div className={mapUrl ? "relative grid grid-cols-1 lg:grid-cols-2 gap-2 p-2 bg-black" : "relative aspect-video bg-black"}>
+            <div className={mapUrl ? "relative aspect-video bg-black" : ""}>
+              <video ref={videoRef} src={debugUrl} className={mapUrl ? "absolute inset-0 w-full h-full object-contain" : "absolute inset-0 w-full h-full object-contain"} controls={false} muted crossOrigin="anonymous" />
+              <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ imageRendering: "pixelated" }} />
+            </div>
+
+            {mapUrl && (
+              <div className="relative aspect-video bg-black">
+                <video ref={mapVideoRef} src={mapUrl} className="absolute inset-0 w-full h-full object-contain" controls={false} muted crossOrigin="anonymous" />
+              </div>
+            )}
               
               {playerStatus === 'buffering' && backendStatus === 'online' && (
                 <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center z-20">
@@ -185,7 +252,7 @@ export function DebugPlayer() {
                   <span>{playerStatus === 'buffering' ? 'Buffering...' : 'Processing...'}</span>
                 </div>
               )}
-            </div>
+          </div>
             <div className="p-4 bg-card border-t">
               <div className="flex items-center gap-4 mb-4">
                 <Button variant="brand" size="icon" onClick={togglePlay} disabled={playerStatus === 'buffering'}>
@@ -193,7 +260,7 @@ export function DebugPlayer() {
                 </Button>
                 <div className="flex-1"> <input type="range" min="0" max={duration || 0} step="0.1" value={currentTime} onChange={handleSeek} className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-brand" /> </div>
                 <div className="text-sm text-muted-foreground min-w-[100px] text-right"> {formatTime(currentTime)} / {formatTime(duration)} </div>
-                <Button variant="outline" size="icon" onClick={() => { if (videoRef.current) videoRef.current.currentTime = 0; }}> <RotateCcw className="h-4 w-4" /> </Button>
+                <Button variant="outline" size="icon" onClick={() => { if (videoRef.current) videoRef.current.currentTime = 0; if (mapVideoRef.current) { try { mapVideoRef.current.currentTime = 0; } catch {} } }}> <RotateCcw className="h-4 w-4" /> </Button>
               </div>
             </div>
           </Card>

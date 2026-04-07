@@ -3,6 +3,7 @@ uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 pillow==10.2.0
 pydantic==2.5.3
+python-dotenv>=1.0.0
 httpx>=0.24.1
 opencv-python-headless==4.8.1.78
 ultralytics
@@ -13,3 +14,22 @@ scikit-learn
 tensorflow==2.15.0
 imageio-ffmpeg>=0.5.1
 gradio_client>=0.10.0
+
+# Coqui TTS currently pulls deps that import pkg_resources.
+# Newer setuptools releases may omit pkg_resources, so pin to a known-working version.
+setuptools==70.3.0
+
+# Offline TTS for commentary (Windows SAPI5)
+pyttsx3==2.90; platform_system=="Windows"
+pywin32>=306; platform_system=="Windows"
+comtypes>=1.2.0; platform_system=="Windows"
+
+# Coqui TTS (XTTS v2). Note: torch installation may require choosing the right wheel for your CPU/GPU.
+TTS>=0.22.0
+
+# Required by current XTTS/torchaudio loading path on Windows.
+torchcodec>=0.10.0
+
+# Coqui XTTS v2 is not compatible with transformers 5.x on this setup.
+transformers>=4.33.0,<5
+tokenizers>=0.14,<0.20

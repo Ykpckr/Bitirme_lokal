@@ -204,7 +204,7 @@ async def process_video(req: ProcessVideoRequest):
         # Remove empty args
         cmd = [c for c in cmd if c != ""]
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
         except subprocess.CalledProcessError as e:
             logger.error(f"ffmpeg failed for normal video: {e.stderr}")
             raise HTTPException(status_code=500, detail=f"ffmpeg failed for normal video: {e.stderr}")
@@ -341,7 +341,7 @@ async def process_video(req: ProcessVideoRequest):
                     debug_path,
                 ]
                 try:
-                    subprocess.run(cmd, capture_output=True, text=True, check=True)
+                    subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
                 except subprocess.CalledProcessError as e:
                     logger.error(f"ffmpeg re-encode failed for debug video: {e.stderr}")
                     # Fallback: move temp_debug to debug_path
@@ -484,7 +484,7 @@ def _extract_segment_to_uploads(src_path: str, start_sec: float, duration_sec: O
             out_path,
         ]
         try:
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
         except subprocess.CalledProcessError as e:
             logger.error(f"ffmpeg failed: {e.stderr}")
             raise HTTPException(status_code=500, detail=f"ffmpeg failed: {e.stderr}")
@@ -542,6 +542,15 @@ class RunFullPipelineRequest(BaseModel):
     start_seconds: Optional[float] = 0.0
 
     run_action_spotting: bool = True
+
+    # calibration
+    run_calibration: bool = True
+    calibration_detector_weights: Optional[str] = None
+    calibration_kp_weights: Optional[str] = None
+    calibration_line_weights: Optional[str] = None
+    calibration_conf_thres: float = 0.30
+    calibration_write_frames_jsonl: bool = True
+    calibration_frames_stride: int = 1
 
     # action spotting inputs
     features_path: Optional[str] = None
@@ -609,6 +618,13 @@ async def run_full_pipeline(req: RunFullPipelineRequest):
     cfg = FullPipelineConfig(
         start_seconds=0.0,
         duration_seconds=None,
+        run_calibration=bool(req.run_calibration),
+        calibration_detector_weights=req.calibration_detector_weights,
+        calibration_kp_weights=req.calibration_kp_weights,
+        calibration_line_weights=req.calibration_line_weights,
+        calibration_conf_thres=float(req.calibration_conf_thres),
+        calibration_write_frames_jsonl=bool(req.calibration_write_frames_jsonl),
+        calibration_frames_stride=int(req.calibration_frames_stride),
         run_tracking=bool(req.run_tracking),
         tracking_device=req.tracking_device,
         tracking_config_path=req.tracking_config_path,
@@ -654,8 +670,45 @@ async def run_full_pipeline(req: RunFullPipelineRequest):
     return {
         **result,
         "segment_url": f"http://localhost:8000/api/video?path={requests_quote(result['segment_path'])}",
+        "product_video_url": f"http://localhost:8000/api/video?path={requests_quote(result.get('product_video_path') or result['segment_path'])}",
         "overlay_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['overlay_video_path'])}",
+        "debug_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['overlay_video_path'])}",
         "events_json_url": f"http://localhost:8000/api/file?path={requests_quote(result['events_json_path'])}",
+        **(
+            {"calibration_map_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['calibration_map_video_path'])}"}
+            if result.get("calibration_map_video_path")
+            else {}
+        ),
+        **(
+            {"calibration_events_json_url": f"http://localhost:8000/api/file?path={requests_quote(result['calibration_events_json_path'])}"}
+            if result.get("calibration_events_json_path")
+            else {}
+        ),
+        **(
+            {"calibration_frames_jsonl_url": f"http://localhost:8000/api/file?path={requests_quote(result['calibration_frames_jsonl_path'])}"}
+            if result.get("calibration_frames_jsonl_path")
+            else {}
+        ),
+        **(
+            {"commentary_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['commentary_video_path'])}"}
+            if result.get("commentary_video_path")
+            else {}
+        ),
+        **(
+            {"commentary_input_url": f"http://localhost:8000/api/file?path={requests_quote(result['commentary_input_path'])}"}
+            if result.get("commentary_input_path")
+            else {}
+        ),
+        **(
+            {"commentary_output_url": f"http://localhost:8000/api/file?path={requests_quote(result['commentary_output_path'])}"}
+            if result.get("commentary_output_path")
+            else {}
+        ),
+        **(
+            {"commentary_audio_manifest_url": f"http://localhost:8000/api/file?path={requests_quote(result['commentary_audio_manifest_path'])}"}
+            if result.get("commentary_audio_manifest_path")
+            else {}
+        ),
         **(
             {"tracking_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['tracking_video_path'])}"}
             if result.get("tracking_video_path")
@@ -720,6 +773,13 @@ async def run_full_pipeline_async(req: RunFullPipelineRequest):
             cfg = FullPipelineConfig(
                 start_seconds=float(start),
                 duration_seconds=float(duration) if duration is not None else None,
+                run_calibration=bool(req.run_calibration),
+                calibration_detector_weights=req.calibration_detector_weights,
+                calibration_kp_weights=req.calibration_kp_weights,
+                calibration_line_weights=req.calibration_line_weights,
+                calibration_conf_thres=float(req.calibration_conf_thres),
+                calibration_write_frames_jsonl=bool(req.calibration_write_frames_jsonl),
+                calibration_frames_stride=int(req.calibration_frames_stride),
                 run_tracking=bool(req.run_tracking),
                 tracking_device=req.tracking_device,
                 tracking_config_path=req.tracking_config_path,
@@ -755,8 +815,45 @@ async def run_full_pipeline_async(req: RunFullPipelineRequest):
             payload = {
                 **result,
                 "segment_url": f"http://localhost:8000/api/video?path={requests_quote(result['segment_path'])}",
+                "product_video_url": f"http://localhost:8000/api/video?path={requests_quote(result.get('product_video_path') or result['segment_path'])}",
                 "overlay_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['overlay_video_path'])}",
+                "debug_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['overlay_video_path'])}",
                 "events_json_url": f"http://localhost:8000/api/file?path={requests_quote(result['events_json_path'])}",
+                **(
+                    {"calibration_map_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['calibration_map_video_path'])}"}
+                    if result.get("calibration_map_video_path")
+                    else {}
+                ),
+                **(
+                    {"calibration_events_json_url": f"http://localhost:8000/api/file?path={requests_quote(result['calibration_events_json_path'])}"}
+                    if result.get("calibration_events_json_path")
+                    else {}
+                ),
+                **(
+                    {"calibration_frames_jsonl_url": f"http://localhost:8000/api/file?path={requests_quote(result['calibration_frames_jsonl_path'])}"}
+                    if result.get("calibration_frames_jsonl_path")
+                    else {}
+                ),
+                **(
+                    {"commentary_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['commentary_video_path'])}"}
+                    if result.get("commentary_video_path")
+                    else {}
+                ),
+                **(
+                    {"commentary_input_url": f"http://localhost:8000/api/file?path={requests_quote(result['commentary_input_path'])}"}
+                    if result.get("commentary_input_path")
+                    else {}
+                ),
+                **(
+                    {"commentary_output_url": f"http://localhost:8000/api/file?path={requests_quote(result['commentary_output_path'])}"}
+                    if result.get("commentary_output_path")
+                    else {}
+                ),
+                **(
+                    {"commentary_audio_manifest_url": f"http://localhost:8000/api/file?path={requests_quote(result['commentary_audio_manifest_path'])}"}
+                    if result.get("commentary_audio_manifest_path")
+                    else {}
+                ),
                 **(
                     {"tracking_video_url": f"http://localhost:8000/api/video?path={requests_quote(result['tracking_video_path'])}"}
                     if result.get("tracking_video_path")
@@ -1172,6 +1269,10 @@ async def list_uploaded_videos():
             kind = "tracking"
         elif lf.startswith("segment_"):
             kind = "segment"
+        elif lf.startswith("product_"):
+            kind = "product"
+        elif lf.startswith("map_"):
+            kind = "map"
         # attach video_id if found (pydantic model will ignore extras on response)
         files.append(
             {
@@ -1281,7 +1382,7 @@ async def extract_clip(req: ExtractRequest):
         ]
 
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
         except subprocess.CalledProcessError as e:
             logger.error(f"ffmpeg failed: {e.stderr}")
             raise HTTPException(status_code=500, detail=f"ffmpeg failed: {e.stderr}")

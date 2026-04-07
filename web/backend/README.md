@@ -71,6 +71,16 @@ Sorun Giderme
 - Bağımlılık hatası alıyorsanız sanal ortamın etkin olduğundan ve `pip install -r requirements.txt` komutunun başarılı tamamlandığından emin olun.
 - Port çakışması varsa çalışan başka bir süreç yoksa farklı bir port belirleyin veya mevcut süreci sonlandırın.
 
+Commentary TTS (XTTS v2)
+- Varsayılan backend: `xttsv2` (Coqui XTTS v2).
+- XTTS v2, bir referans ses dosyası ister. Windows'ta env ile verin:
+
+   - `COMMENTARY_SPEAKER_WAV=C:\\path\\to\\speaker.wav`
+   - (opsiyonel) `COMMENTARY_TTS_BACKEND=xttsv2` (veya `sapi` / `pyttsx3`)
+
+- XTTS kurulumu için: `pip install -r requirements.txt` (gerekirse ayrıca uygun `torch` wheel'i kurmanız gerekebilir).
+- Eğer `ModuleNotFoundError: No module named 'pkg_resources'` görürseniz, `setuptools==70.3.0` pin'i gereklidir (requirements içinde var).
+
 Katkıda Bulunma
 - Küçük düzeltmeler ve hata düzeltmeleri için issue açın veya pull request gönderin.
 

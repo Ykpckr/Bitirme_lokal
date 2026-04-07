@@ -17,12 +17,26 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
+try:
+    import httpx  # type: ignore
+except Exception:  # pragma: no cover
+    httpx = None
+
 
 @dataclass
 class FullPipelineConfig:
     # segment
     start_seconds: float = 0.0
     duration_seconds: Optional[float] = None
+
+    # calibration (must run before tracking)
+    run_calibration: bool = True
+    calibration_detector_weights: Optional[str] = None
+    calibration_kp_weights: Optional[str] = None
+    calibration_line_weights: Optional[str] = None
+    calibration_conf_thres: float = 0.30
+    calibration_write_frames_jsonl: bool = False
+    calibration_frames_stride: int = 1
 
     # tracking
     run_tracking: bool = True
@@ -75,6 +89,17 @@ class FullPipelineConfig:
     jersey_merge_min_confidence: float = 0.60
     jersey_merge_max_overlap_frames: int = 5
 
+    # commentary (Qwen text -> TTS -> mix into video)
+    run_commentary: bool = True
+    commentary_max_events: int = 30
+    commentary_possession_max_age_sec: float = 8.0
+    # TTS + audio mixing onto overlay video
+    commentary_enable_tts: bool = True
+    # Default to XTTS v2 (Coqui). If unavailable or speaker wav is missing, the audio manifest
+    # will include errors; you can switch to 'sapi' for a lightweight Windows fallback.
+    commentary_tts_backend: str = "xttsv2"  # or: sapi, pyttsx3, xtts/xttsv2
+    commentary_speaker_wav: Optional[str] = None
+
     # heuristics
     possession_dist_norm: float = 0.08
     possession_stable_frames: int = 6
@@ -96,6 +121,172 @@ def _default_action_checkpoint() -> Optional[str]:
 def _default_tracking_config() -> Optional[str]:
     p = _repo_root() / "model-training" / "tracking-reid-osnet" / "config.yaml"
     return str(p) if p.exists() else None
+
+
+def _default_calibration_detector_weights() -> Optional[str]:
+    p = _repo_root() / "model-training" / "calibration" / "best.pt"
+    return str(p) if p.exists() else None
+
+
+def _default_calibration_kp_weights() -> Optional[str]:
+    p = _repo_root() / "model-training" / "calibration" / "SV_kp.pth"
+    return str(p) if p.exists() else None
+
+
+def _default_calibration_line_weights() -> Optional[str]:
+    p = _repo_root() / "model-training" / "calibration" / "SV_lines.pth"
+    return str(p) if p.exists() else None
+
+
+def run_calibration_pipeline(
+    *,
+    video_path: str,
+    out_map: str,
+    out_events: str,
+    out_frames: Optional[str] = None,
+    cfg: Optional[FullPipelineConfig] = None,
+    progress_cb: Optional[Callable[[str, int, int, str], None]] = None,
+) -> Dict[str, Any]:
+    """Run calibration as a subprocess and return artifact paths.
+
+    Best-effort: callers should catch exceptions and proceed.
+    """
+
+    repo = _repo_root()
+    script = repo / "model-training" / "calibration" / "run_pipeline_calibration.py"
+    if not script.exists():
+        raise FileNotFoundError(str(script))
+
+    det_w = None
+    kp_w = None
+    line_w = None
+    conf = 0.30
+    if cfg is not None:
+        try:
+            det_w = getattr(cfg, "calibration_detector_weights", None)
+            kp_w = getattr(cfg, "calibration_kp_weights", None)
+            line_w = getattr(cfg, "calibration_line_weights", None)
+            conf = float(getattr(cfg, "calibration_conf_thres", 0.30) or 0.30)
+        except Exception:
+            det_w, kp_w, line_w, conf = None, None, None, 0.30
+
+    det_w = str(det_w).strip() if det_w else (_default_calibration_detector_weights() or "")
+    kp_w = str(kp_w).strip() if kp_w else (_default_calibration_kp_weights() or "")
+    line_w = str(line_w).strip() if line_w else (_default_calibration_line_weights() or "")
+
+    if not det_w or not os.path.isfile(det_w):
+        raise FileNotFoundError(f"calibration detector weights not found: {det_w}")
+    if not kp_w or not os.path.isfile(kp_w):
+        raise FileNotFoundError(f"calibration kp weights not found: {kp_w}")
+    if not line_w or not os.path.isfile(line_w):
+        raise FileNotFoundError(f"calibration line weights not found: {line_w}")
+
+    cmd: List[str] = [
+        sys.executable,
+        "-u",
+        str(script),
+        "--source",
+        str(Path(video_path).resolve()),
+        "--out_map",
+        str(Path(out_map).resolve()),
+        "--out_events",
+        str(Path(out_events).resolve()),
+        "--detector",
+        str(Path(det_w).resolve()),
+        "--kp_weights",
+        str(Path(kp_w).resolve()),
+        "--line_weights",
+        str(Path(line_w).resolve()),
+        "--conf",
+        str(float(conf)),
+    ]
+
+    frames_stride = 1
+    if cfg is not None:
+        try:
+            frames_stride = int(getattr(cfg, "calibration_frames_stride", 1) or 1)
+        except Exception:
+            frames_stride = 1
+    if frames_stride < 1:
+        frames_stride = 1
+
+    if out_frames and str(out_frames).strip():
+        cmd += ["--out_frames", str(Path(str(out_frames)).resolve()), "--frames_stride", str(int(frames_stride))]
+
+    env = os.environ.copy()
+    env.setdefault("PYTHONUNBUFFERED", "1")
+    env.setdefault("PYTHONFAULTHANDLER", "1")
+    env.setdefault("TORCH_SHOW_CPP_STACKTRACES", "1")
+
+    # Stream stdout to extract progress and final JSON payload.
+    p = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
+        bufsize=1,
+        universal_newlines=True,
+    )
+
+    last_json: Optional[Dict[str, Any]] = None
+    tail: List[str] = []
+    try:
+        assert p.stdout is not None
+        for raw_line in p.stdout:
+            line = (raw_line or "").strip()
+            if not line:
+                continue
+
+            tail.append(line)
+            if len(tail) > 200:
+                tail = tail[-200:]
+
+            if line.startswith("__PROGRESS__"):
+                try:
+                    payload = json.loads(line[len("__PROGRESS__") :].strip())
+                    stage = str(payload.get("stage") or "calibration")
+                    cur = int(payload.get("current") or 0)
+                    total = int(payload.get("total") or 0)
+                    msg = str(payload.get("message") or "")
+                    if progress_cb is not None:
+                        try:
+                            progress_cb(stage, cur, total, msg)
+                        except Exception:
+                            pass
+                except Exception:
+                    continue
+                continue
+
+            # The runner prints a JSON object at the end with artifact paths.
+            if line.startswith("{") and "map_video_path" in line and "events_json_path" in line:
+                try:
+                    last_json = json.loads(line)
+                except Exception:
+                    pass
+    finally:
+        try:
+            if p.stdout is not None:
+                p.stdout.close()
+        except Exception:
+            pass
+
+    rc = p.wait()
+    if rc != 0:
+        err = "\n".join(tail[-200:])
+        raise RuntimeError(f"calibration subprocess failed (code {rc}):\n{err[-8000:]}")
+
+    if isinstance(last_json, dict):
+        return last_json
+
+    # Best-effort fallback: return declared output paths.
+    return {
+        "map_video_path": str(Path(out_map).resolve()),
+        "events_json_path": str(Path(out_events).resolve()),
+        **({"frames_jsonl_path": str(Path(str(out_frames)).resolve())} if out_frames and str(out_frames).strip() else {}),
+    }
 
 
 def _timecode(t: float) -> str:
@@ -135,6 +326,291 @@ def _clamp_int(v: float, lo: int, hi: int) -> int:
     except Exception:
         iv = int(lo)
     return max(int(lo), min(int(hi), iv))
+
+
+def _is_special_track_id(track_id: int) -> bool:
+    """Reserved/special IDs produced by the tracker (referee/goalkeeper).
+
+    These tracks should never be sent to jersey-number inference.
+    """
+    try:
+        return int(track_id) >= 800_000_000
+    except Exception:
+        return False
+
+
+def _qwen_text_openai_compatible(
+    *,
+    base_url: str,
+    model: str,
+    prompt: str,
+    timeout_sec: float = 60.0,
+) -> Tuple[Optional[str], Optional[str]]:
+    """Best-effort OpenAI-compatible text call (llama.cpp/vLLM style)."""
+    if httpx is None:
+        return None, None
+
+    base = _normalize_base_url(base_url)
+    if not base:
+        return None, None
+
+    endpoint = base + "/v1/chat/completions"
+    payload = {
+        "model": str(model or "qwen3vl8b"),
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a Turkish football commentator.",
+            },
+            {
+                "role": "user",
+                "content": str(prompt or ""),
+            },
+        ],
+        "temperature": 0.7,
+        "max_tokens": 800,
+    }
+
+    try:
+        with httpx.Client(timeout=float(timeout_sec)) as client:
+            r = client.post(endpoint, json=payload)
+            r.raise_for_status()
+            data = r.json()
+    except Exception as e:
+        return None, str(e)
+
+    raw = ""
+    try:
+        choices = data.get("choices") or []
+        msg = (choices[0] or {}).get("message") or {}
+        raw = str(msg.get("content") or "").strip()
+    except Exception:
+        raw = ""
+
+    return raw, None
+
+
+def _build_commentary_prompt(items: List[Dict[str, Any]]) -> str:
+    """Hardcoded prompt for Qwen (requested)."""
+    return (
+        "Sen bir futbol maç spikerisin. Aşağıda zaman damgası ile olay listesi var.\n"
+        "Her olay için en fazla 2 cümlelik, doğal ve heyecanlı Türkçe yorum yaz.\n"
+        "Kurallar:\n"
+        "- Sadece Türkçe yaz.\n"
+        "- Aynı zaman damgasını koru.\n"
+        "- Oyuncu bilgisi varsa (#track_id ve forma_no) onu kullan.\n"
+        "- Tahmin etme; belirsizse genel konuş.\n"
+        "- ÇIKTI FORMAT: Sadece JSON array döndür.\n"
+        "JSON şeması: [{\"t\": <float saniye>, \"timecode\": \"MM:SS\", \"text\": \"...\"}]\n\n"
+        "Olaylar JSON:\n"
+        + json.dumps(items, ensure_ascii=False, indent=2)
+    )
+
+
+def _extract_json_array_best_effort(raw: str) -> Optional[str]:
+    """Extract the first top-level JSON array from a model response.
+
+    Qwen (or OpenAI-compatible servers) sometimes wrap JSON in markdown fences
+    or add extra prose. We best-effort extract the first `[...]` block.
+    """
+    s = str(raw or "").strip()
+    if not s:
+        return None
+    # Strip common markdown fences
+    s = re.sub(r"^```(?:json)?\s*", "", s.strip(), flags=re.IGNORECASE)
+    s = re.sub(r"\s*```$", "", s.strip())
+    # Find first JSON array
+    start = s.find("[")
+    end = s.rfind("]")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    return s[start : end + 1]
+
+
+def _timecode_mmss(t: float) -> str:
+    return _timecode(float(t))
+
+
+def _assign_actor_track_id_to_action(
+    *,
+    action_t: float,
+    possession_events: List[Dict[str, Any]],
+    max_age_sec: float,
+) -> Optional[int]:
+    """Pick the last known ball owner at/before action_t."""
+    best_t = -1e9
+    best_id: Optional[int] = None
+    for e in possession_events:
+        try:
+            et = float(e.get("t", 0.0))
+        except Exception:
+            continue
+        if et > float(action_t):
+            break
+        pid = e.get("player_track_id")
+        if pid is None:
+            continue
+        try:
+            pid_i = int(pid)
+        except Exception:
+            continue
+        if _is_special_track_id(pid_i):
+            continue
+        if et >= best_t:
+            best_t = et
+            best_id = pid_i
+
+    if best_id is None:
+        return None
+    if float(action_t) - float(best_t) > float(max_age_sec):
+        return None
+    return int(best_id)
+
+
+def _mix_commentary_audio_into_video(
+    *,
+    base_video_path: str,
+    out_path: str,
+    clips: List[Tuple[float, str]],
+) -> Optional[str]:
+    """Mix timestamped audio clips into the video.
+
+    Produces a new MP4 that contains:
+    - Video stream copied/re-encoded from base_video_path
+    - Audio stream composed ONLY from the commentary clips placed at timestamps
+      (i.e., the base video's original audio is not kept)
+    """
+    ffmpeg_bin = _ffmpeg_exe()
+    if not ffmpeg_bin:
+        return None
+    if not clips:
+        return None
+
+    # Keep only existing audio files that look non-empty.
+    kept: List[Tuple[float, str]] = []
+    for t, p in clips:
+        try:
+            # Empty WAV headers can be ~44-60 bytes; require at least 1KB.
+            if os.path.isfile(p) and os.path.getsize(p) > 1024:
+                kept.append((float(t), str(p)))
+        except Exception:
+            continue
+    if not kept:
+        return None
+
+    inputs = ["-i", str(Path(base_video_path).resolve())]
+    for _, ap in kept:
+        inputs += ["-i", str(Path(ap).resolve())]
+
+    # Best-effort: compute video duration so we can create a silent base track of equal length.
+    duration_sec: Optional[float] = None
+    try:
+        cap = cv2.VideoCapture(str(base_video_path))
+        if cap is not None and cap.isOpened():
+            fps = float(cap.get(cv2.CAP_PROP_FPS) or 0.0)
+            frames = float(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0.0)
+            if fps > 1e-3 and frames > 1:
+                duration_sec = float(frames / fps)
+        try:
+            cap.release()
+        except Exception:
+            pass
+    except Exception:
+        duration_sec = None
+
+    # Build filter_complex.
+    # Audio inputs start at index 1.
+    parts: List[str] = []
+    amix_inputs: List[str] = []
+
+    # Normalize all audio to a consistent format before mixing.
+    # Add a silent baseline so the output audio track spans the full video duration.
+    use_silence = duration_sec is not None and duration_sec > 0.25
+    if use_silence:
+        # anullsrc is infinite; trim it to the video duration.
+        dur = max(0.25, float(duration_sec))
+        parts.append(
+            "anullsrc=channel_layout=stereo:sample_rate=44100,atrim=0:{:.3f},asetpts=N/SR/TB[sil]".format(dur)
+        )
+        amix_inputs.append("[sil]")
+
+    for i, (t, _ap) in enumerate(kept, start=1):
+        delay_ms = max(0, int(round(float(t) * 1000.0)))
+        tag = f"a{i}"
+        # aformat makes mix more robust across WAV/AAC input variations.
+        parts.append(
+            f"[{i}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,adelay={delay_ms}|{delay_ms}[{tag}]"
+        )
+        amix_inputs.append(f"[{tag}]")
+
+    # If we have a silent baseline, set duration=first to match it; else match the longest clip.
+    mix_duration = "first" if use_silence else "longest"
+    parts.append(
+        "".join(amix_inputs)
+        + f"amix=inputs={len(amix_inputs)}:duration={mix_duration}:dropout_transition=0[outa]"
+    )
+    filter_complex = ";".join(parts)
+
+    out_path = str(Path(out_path).resolve())
+    os.makedirs(str(Path(out_path).parent), exist_ok=True)
+
+    cmd = [
+        ffmpeg_bin,
+        "-y",
+        *inputs,
+        "-filter_complex",
+        filter_complex,
+        "-map",
+        "0:v:0",
+        "-map",
+        "[outa]",
+        "-c:v",
+        "copy",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "160k",
+        "-movflags",
+        "+faststart",
+        out_path,
+    ]
+
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
+        return out_path
+    except Exception:
+        # Fallback: re-encode video if stream copy fails.
+        try:
+            cmd2 = [
+                ffmpeg_bin,
+                "-y",
+                *inputs,
+                "-filter_complex",
+                filter_complex,
+                "-map",
+                "0:v:0",
+                "-map",
+                "[outa]",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "fast",
+                "-crf",
+                "20",
+                "-pix_fmt",
+                "yuv420p",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "160k",
+                "-movflags",
+                "+faststart",
+                out_path,
+            ]
+            subprocess.run(cmd2, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
+            return out_path
+        except Exception:
+            return None
 
 
 def _jersey_crop_from_player_bbox(
@@ -421,6 +897,8 @@ def _select_jersey_samples_from_tracks_csv(
                 track_id = int(float(row.get("track_id", 0)))
                 if track_id <= 0:
                     continue
+                if _is_special_track_id(track_id):
+                    continue
                 frame_id = int(float(row.get("frame_id", 0)))
                 conf = float(row.get("conf", 0.0) or 0.0)
                 if conf < float(cfg.jersey_min_det_conf):
@@ -510,6 +988,8 @@ def infer_jersey_numbers_from_tracking(
             except Exception:
                 continue
             if track_id <= 0:
+                continue
+            if _is_special_track_id(track_id):
                 continue
             try:
                 conf = float(r.get("conf", 0.0))
@@ -897,7 +1377,7 @@ def extract_segment_to_mp4(*, src_path: str, out_path: str, start_sec: float, du
             "+faststart",
             out_path,
         ]
-        subprocess.run(cmd, capture_output=True, text=True, check=True)
+        subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
         try:
             pbar.update(1)
             pbar.close()
@@ -1127,13 +1607,16 @@ def run_tracking_reid_osnet(
         except Exception:
             qwen_url = ""
 
+    jersey_cmd_enabled = False
+    jersey_args: List[str] = []
     if (
         cfg is not None
         and bool(getattr(cfg, "run_jersey_number_recognition", False))
         and bool(getattr(cfg, "jersey_in_tracking", True))
         and bool(qwen_url)
     ):
-        cmd += [
+        jersey_cmd_enabled = True
+        jersey_args = [
             "--jersey_enable",
             "1",
             "--jersey_qwen_url",
@@ -1160,8 +1643,11 @@ def run_tracking_reid_osnet(
             jersey_json_path,
         ]
 
+        cmd += jersey_args
+
         crops_dir = getattr(cfg, "jersey_crops_dir", None)
         if crops_dir is not None and str(crops_dir).strip():
+            jersey_args += ["--jersey_crops_dir", str(crops_dir)]
             cmd += ["--jersey_crops_dir", str(crops_dir)]
 
     if device:
@@ -1171,43 +1657,82 @@ def run_tracking_reid_osnet(
     if reid_weights:
         cmd += ["--reid_weights", reid_weights]
 
-    start_ts = time.time()
-    with open(log_path, "w", encoding="utf-8", errors="ignore") as lf:
+    def _run_tracking_subprocess(cmd_to_run: List[str], log_file: str) -> subprocess.Popen:
+        os.makedirs(str(Path(log_file).resolve().parent), exist_ok=True)
+        lf = open(log_file, "w", encoding="utf-8", errors="ignore")
         env = os.environ.copy()
         env.setdefault("PYTHONUNBUFFERED", "1")
-        p = subprocess.Popen(cmd, stdout=lf, stderr=subprocess.STDOUT, text=True, env=env)
+        env.setdefault("PYTHONFAULTHANDLER", "1")
+        env.setdefault("TORCH_SHOW_CPP_STACKTRACES", "1")
+        p = subprocess.Popen(cmd_to_run, stdout=lf, stderr=subprocess.STDOUT, text=True, env=env)
+        # attach so caller can close it later
+        p._pipeline_log_handle = lf  # type: ignore[attr-defined]
+        return p
 
-        # Prefer progress in frames/FPS (parsed from the tracking script logs).
-        # Fallback: elapsed-seconds ticker (but without misleading rate info).
-        progress_re = re.compile(
-            r"\[(?P<cur>\d+)\/(?P<total>\d+)\]\s+(?P<pct>[0-9.]+)%\s+\|\s+(?P<fps>[0-9.]+)\s+FPS\s+\|\s+ETA\s+(?P<eta>\d\d:\d\d:\d\d)"
-        )
+    def _strip_jersey_flags(argv: List[str]) -> List[str]:
+        """Remove in-tracking jersey CLI flags from argv (best-effort)."""
+        jersey_flags_1 = {
+            "--jersey_enable",
+            "--jersey_qwen_url",
+            "--jersey_model",
+            "--jersey_prompt",
+            "--jersey_min_frame_gap",
+            "--jersey_max_samples_per_track",
+            "--jersey_min_det_conf",
+            "--jersey_min_box_area",
+            "--jersey_frame_topk",
+            "--jersey_vis_filter",
+            "--jersey_vis_min_score",
+            "--jersey_out_json",
+            "--jersey_crops_dir",
+        }
 
-        last_frame = 0
-        inferred_total: Optional[int] = None
-        pbar: Optional[tqdm] = None
-        tick_pbar = tqdm(total=None, desc="Tracking", unit="s", bar_format="{desc}: {elapsed}")
+        out: List[str] = []
+        i = 0
+        n = len(argv)
+        while i < n:
+            tok = argv[i]
+            if tok in jersey_flags_1:
+                i += 2  # drop flag + its value
+                continue
+            out.append(tok)
+            i += 1
+        return out
 
+    start_ts = time.time()
+    p = _run_tracking_subprocess(cmd, log_path)
+
+    # Prefer progress in frames/FPS (parsed from the tracking script logs).
+    # Fallback: elapsed-seconds ticker (but without misleading rate info).
+    progress_re = re.compile(
+        r"\[(?P<cur>\d+)\/(?P<total>\d+)\]\s+(?P<pct>[0-9.]+)%\s+\|\s+(?P<fps>[0-9.]+)\s+FPS\s+\|\s+ETA\s+(?P<eta>\d\d:\d\d:\d\d)"
+    )
+
+    last_frame = 0
+    inferred_total: Optional[int] = None
+    pbar: Optional[tqdm] = None
+    tick_pbar = tqdm(total=None, desc="Tracking", unit="s", bar_format="{desc}: {elapsed}")
+
+    try:
+        # Open the log for tailing.
         try:
-            # Open the log for tailing.
-            try:
-                rf = open(log_path, "r", encoding="utf-8", errors="ignore")
-            except Exception:
-                rf = None
+            rf = open(log_path, "r", encoding="utf-8", errors="ignore")
+        except Exception:
+            rf = None
 
-            while True:
-                rc = p.poll()
-                any_update = False
+        while True:
+            rc = p.poll()
+            any_update = False
 
-                # Tail log and parse progress lines.
-                if rf is not None:
-                    while True:
-                        line = rf.readline()
-                        if not line:
-                            break
-                        m = progress_re.search(line)
-                        if not m:
-                            continue
+            # Tail log and parse progress lines.
+            if rf is not None:
+                while True:
+                    line = rf.readline()
+                    if not line:
+                        break
+                    m = progress_re.search(line)
+                    if not m:
+                        continue
 
                         try:
                             cur = int(m.group("cur"))
@@ -1265,21 +1790,124 @@ def run_tracking_reid_osnet(
                             pass
                 else:
                     time.sleep(0.2)
-        finally:
+    finally:
+        try:
+            if rf is not None:
+                rf.close()
+        except Exception:
+            pass
+        try:
+            if pbar is not None:
+                pbar.close()
+        except Exception:
+            pass
+        try:
+            tick_pbar.close()
+        except Exception:
+            pass
+
+        try:
+            lh = getattr(p, "_pipeline_log_handle", None)
+            if lh is not None:
+                lh.close()
+        except Exception:
+            pass
+
+    # If the jersey-enabled run crashed (often native/OOM with no traceback), retry once without jersey.
+    tracking_retry_log_path: Optional[str] = None
+    if p.returncode != 0 and jersey_cmd_enabled:
+        try:
+            # Keep the failing log; write retry to a new file.
+            tracking_retry_log_path = str(Path(out_dir) / f"tracking_{run_id}_retry_no_jersey.log")
+
+            # Remove potentially partial outputs before retry.
+            for pp in (save_video, save_txt):
+                try:
+                    if os.path.isfile(pp):
+                        os.remove(pp)
+                except Exception:
+                    pass
+
+            cmd_no_jersey = _strip_jersey_flags(list(cmd))
+
+            p = _run_tracking_subprocess(cmd_no_jersey, tracking_retry_log_path)
+            # Tail retry log for progress updates (best-effort).
+            rf2 = None
             try:
-                if rf is not None:
-                    rf.close()
+                rf2 = open(tracking_retry_log_path, "r", encoding="utf-8", errors="ignore")
+            except Exception:
+                rf2 = None
+
+            retry_last_frame = 0
+            retry_total: Optional[int] = None
+            while True:
+                rc2 = p.poll()
+                any_update2 = False
+
+                if rf2 is not None:
+                    while True:
+                        line2 = rf2.readline()
+                        if not line2:
+                            break
+                        m2 = progress_re.search(line2)
+                        if not m2:
+                            continue
+                        try:
+                            cur2 = int(m2.group("cur"))
+                            total2 = int(m2.group("total"))
+                            fps2 = float(m2.group("fps"))
+                            eta2 = str(m2.group("eta"))
+                        except Exception:
+                            continue
+
+                        if retry_total is None and total2 > 0:
+                            retry_total = total2
+                        if cur2 >= retry_last_frame:
+                            retry_last_frame = cur2
+
+                        if progress_cb is not None and total2 > 0:
+                            try:
+                                pct2 = int((cur2 * 100) / max(1, total2))
+                                progress_cb(
+                                    "tracking",
+                                    cur2,
+                                    total2,
+                                    f"Tracking (retry) {pct2}% | {fps2:.2f} FPS | ETA {eta2}",
+                                )
+                            except Exception:
+                                pass
+
+                        any_update2 = True
+
+                if rc2 is not None:
+                    break
+
+                if not any_update2:
+                    time.sleep(1.0)
+                    if progress_cb is not None:
+                        try:
+                            elapsed2 = int(time.time() - start_ts)
+                            progress_cb("tracking", elapsed2, 0, "Tracking (retry) çalışıyor")
+                        except Exception:
+                            pass
+                else:
+                    time.sleep(0.2)
+
+            try:
+                if rf2 is not None:
+                    rf2.close()
             except Exception:
                 pass
             try:
-                if pbar is not None:
-                    pbar.close()
+                lh2 = getattr(p, "_pipeline_log_handle", None)
+                if lh2 is not None:
+                    lh2.close()
             except Exception:
                 pass
-            try:
-                tick_pbar.close()
-            except Exception:
-                pass
+            log_path = tracking_retry_log_path
+        except Exception:
+            # If retry setup fails, fall through to standard error handling below.
+            pass
 
     if p.returncode != 0:
         tail = ""
@@ -1288,9 +1916,19 @@ def run_tracking_reid_osnet(
                 tail = rf.read()[-4000:]
         except Exception:
             tail = ""
+        rc = p.returncode
+        rc_hex = None
+        try:
+            if isinstance(rc, int) and rc < 0:
+                rc_hex = hex((1 << 32) + rc)
+            elif isinstance(rc, int):
+                rc_hex = hex(rc)
+        except Exception:
+            rc_hex = None
         raise RuntimeError(
             "tracking-reid-osnet failed\n"
             f"cmd: {' '.join(cmd)}\n"
+            f"returncode: {rc} ({rc_hex})\n"
             f"log: {log_path}\n"
             f"tail: {tail}"
         )
@@ -1305,7 +1943,8 @@ def run_tracking_reid_osnet(
     out_csv_path = save_txt
 
     # Prefer jersey mapping produced during tracking.
-    if cfg is not None and bool(getattr(cfg, "run_jersey_number_recognition", False)) and bool(getattr(cfg, "jersey_in_tracking", True)):
+    jersey_in_tracking_cfg = bool(getattr(cfg, "jersey_in_tracking", True)) if cfg is not None else False
+    if cfg is not None and bool(getattr(cfg, "run_jersey_number_recognition", False)) and jersey_in_tracking_cfg:
         try:
             if os.path.isfile(jersey_json_path):
                 with open(jersey_json_path, "r", encoding="utf-8") as f:
@@ -1318,6 +1957,20 @@ def run_tracking_reid_osnet(
                         continue
         except Exception:
             jersey_by_track = {}
+
+        # If jersey was requested in-tracking but didn't produce outputs (e.g., retry without jersey),
+        # fall back to post-tracking inference.
+        if not jersey_by_track:
+            try:
+                jersey_by_track = infer_jersey_numbers_from_tracking(
+                    video_path=video_path,
+                    tracks_csv_path=save_txt,
+                    out_dir=out_dir,
+                    cfg=cfg,
+                    progress_cb=progress_cb,
+                )
+            except Exception:
+                jersey_by_track = {}
 
         try:
             track_id_remap = _build_track_id_remap_from_jerseys(jersey_by_track=jersey_by_track, cfg=cfg)
@@ -1390,6 +2043,7 @@ def run_tracking_reid_osnet(
         "jersey_by_track": jersey_by_track,
         "track_id_remap": track_id_remap,
         "tracking_log_path": log_path,
+        **({"tracking_retry_log_path": tracking_retry_log_path} if tracking_retry_log_path else {}),
         "tracking_seconds": float(time.time() - start_ts),
     }
 
@@ -1739,7 +2393,7 @@ def overlay_events_on_video(
                 "+faststart",
                 out_path,
             ]
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
             try:
                 os.remove(tmp_path)
             except Exception:
@@ -1793,6 +2447,89 @@ def run_full_pipeline(
     )
     emit("segment", 1, 1, "Video segment hazır")
 
+    calibration_map_video_path: Optional[str] = None
+    calibration_events_json_path: Optional[str] = None
+    calibration_frames_jsonl_path: Optional[str] = None
+    calibration_events: List[Dict[str, Any]] = []
+
+    if bool(getattr(cfg, "run_calibration", True)):
+        emit("calibration", 0, 1, "Calibration başlıyor")
+        try:
+            out_map = str(Path(out_dir) / f"map_{run_id}.mp4")
+            out_events = str(Path(out_dir) / f"calibration_events_{run_id}.json")
+            out_frames = None
+            if bool(getattr(cfg, "calibration_write_frames_jsonl", False)):
+                out_frames = str(Path(out_dir) / f"calibration_frames_{run_id}.jsonl")
+            calib_res = run_calibration_pipeline(
+                video_path=segment_path,
+                out_map=out_map,
+                out_events=out_events,
+                out_frames=out_frames,
+                cfg=cfg,
+                progress_cb=progress_cb,
+            )
+
+            calibration_map_video_path = str(calib_res.get("map_video_path") or out_map)
+            calibration_events_json_path = str(calib_res.get("events_json_path") or out_events)
+            try:
+                calibration_frames_jsonl_path = str(calib_res.get("frames_jsonl_path") or "")
+            except Exception:
+                calibration_frames_jsonl_path = None
+            if calibration_frames_jsonl_path and not os.path.isfile(str(calibration_frames_jsonl_path)):
+                calibration_frames_jsonl_path = None
+
+            # Import calibration events into the unified manifest event list.
+            if calibration_events_json_path and os.path.isfile(calibration_events_json_path):
+                try:
+                    with open(calibration_events_json_path, "r", encoding="utf-8") as f:
+                        ce = json.load(f) or {}
+                    evs = ce.get("events") if isinstance(ce, dict) else None
+                    if isinstance(evs, list):
+                        for e in evs:
+                            if isinstance(e, dict):
+                                calibration_events.append(e)
+                except Exception:
+                    pass
+
+            # Make map video browser-playable (H.264 + faststart) when possible.
+            try:
+                ffmpeg_bin = _ffmpeg_exe()
+                if ffmpeg_bin and calibration_map_video_path and os.path.isfile(calibration_map_video_path):
+                    src = str(calibration_map_video_path)
+                    tmp = str(Path(out_dir) / f"map_{run_id}.tmp_h264.mp4")
+                    cmd = [
+                        ffmpeg_bin,
+                        "-y",
+                        "-i",
+                        src,
+                        "-c:v",
+                        "libx264",
+                        "-pix_fmt",
+                        "yuv420p",
+                        "-preset",
+                        "fast",
+                        "-crf",
+                        "20",
+                        "-an",
+                        "-movflags",
+                        "+faststart",
+                        tmp,
+                    ]
+                    subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
+                    try:
+                        os.replace(tmp, src)
+                    except Exception:
+                        calibration_map_video_path = tmp
+            except Exception:
+                pass
+        except Exception:
+            # Best-effort; keep pipeline running.
+            calibration_map_video_path = None
+            calibration_events_json_path = None
+            calibration_frames_jsonl_path = None
+            calibration_events = []
+        emit("calibration", 1, 1, "Calibration tamam")
+
     tracking_video_path: Optional[str] = None
     tracks_csv_path: Optional[str] = None
     tracks_csv_raw_path: Optional[str] = None
@@ -1816,6 +2553,8 @@ def run_full_pipeline(
         emit("tracking", 1, 1, "Tracking tamam")
 
     events: List[Dict[str, Any]] = []
+    if calibration_events:
+        events.extend(calibration_events)
 
     jersey_by_track: Dict[int, Dict[str, Any]] = {}
     track_id_remap: Dict[int, int] = {}
@@ -1933,6 +2672,14 @@ def run_full_pipeline(
             except Exception:
                 continue
 
+    # Commentary artifacts (filled after overlay generation)
+    commentary_input_path: Optional[str] = None
+    commentary_output_path: Optional[str] = None
+    commentary_audio_manifest_path: Optional[str] = None
+    commentary_video_path: Optional[str] = None
+    # Product output: should be a clean (no boxes) video, optionally with commentary audio.
+    product_video_path: str = segment_path
+
     # The user-facing overlay should focus on action spotting events.
     overlay_events = [e for e in events if str(e.get("source")) == "action_spotting"]
     if not overlay_events:
@@ -1955,6 +2702,204 @@ def run_full_pipeline(
     )
     emit("overlay", 1, 1, "Overlay tamam")
 
+    # Commentary: ask Qwen for commentator lines, then optionally TTS+mix onto the clean segment.
+    try:
+        if bool(getattr(cfg, "run_commentary", True)):
+            action_events = [e for e in events if str(e.get("source")) == "action_spotting"]
+            possession_events = [
+                e
+                for e in events
+                if str(e.get("source")) == "tracking" and str(e.get("type")) in ("possession_start", "possession_change")
+            ]
+
+            if action_events:
+                max_events = int(getattr(cfg, "commentary_max_events", 30) or 30)
+                action_events = sorted(action_events, key=lambda e: float(e.get("t", 0.0)))[: max(1, max_events)]
+
+                items_in: List[Dict[str, Any]] = []
+                for ae in action_events:
+                    try:
+                        t = float(ae.get("t", 0.0))
+                    except Exception:
+                        continue
+
+                    actor_tid: Optional[int] = None
+                    if possession_events:
+                        actor_tid = _assign_actor_track_id_to_action(
+                            action_t=t,
+                            possession_events=possession_events,
+                            max_age_sec=float(getattr(cfg, "commentary_possession_max_age_sec", 8.0)),
+                        )
+
+                    actor_info = jersey_by_track.get(int(actor_tid), {}) if actor_tid is not None else {}
+                    actor_jersey = None
+                    actor_team = None
+                    try:
+                        if actor_info:
+                            actor_jersey = actor_info.get("jersey_number")
+                            actor_team = actor_info.get("team_id")
+                    except Exception:
+                        pass
+
+                    items_in.append(
+                        {
+                            "t": float(t),
+                            "timecode": _timecode_mmss(float(t)),
+                            "event_label": str(ae.get("label", "")),
+                            "event_confidence": float(ae.get("confidence", 0.0) or 0.0),
+                            "description_tr": str(ae.get("description_tr", "") or ""),
+                            "actor_track_id": int(actor_tid) if actor_tid is not None else None,
+                            "actor_jersey_number": actor_jersey,
+                            "actor_team_id": actor_team,
+                        }
+                    )
+
+                commentary_input_path = str(Path(out_dir) / f"commentary_input_{run_id}.json")
+                with open(commentary_input_path, "w", encoding="utf-8") as f:
+                    json.dump(
+                        {
+                            "schema_version": "1.0",
+                            "run_id": run_id,
+                            "created_utc": datetime.utcnow().isoformat() + "Z",
+                            "items": items_in,
+                        },
+                        f,
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+
+                qwen_url = str(getattr(cfg, "qwen_vl_url", "") or "").strip()
+                qwen_model = str(getattr(cfg, "qwen_vl_model", "qwen3vl8b") or "qwen3vl8b").strip()
+                prompt = _build_commentary_prompt(items_in)
+                raw, err = _qwen_text_openai_compatible(base_url=qwen_url, model=qwen_model, prompt=prompt)
+
+                parsed: List[Dict[str, Any]] = []
+                if raw:
+                    try:
+                        extracted = _extract_json_array_best_effort(raw)
+                        parsed = json.loads(extracted if extracted else raw)
+                    except Exception:
+                        parsed = []
+
+                by_t: Dict[float, str] = {}
+                for it in parsed or []:
+                    try:
+                        tt = float(it.get("t"))
+                        txt = str(it.get("text") or "").strip()
+                        if txt:
+                            by_t[tt] = txt
+                    except Exception:
+                        continue
+
+                items_out: List[Dict[str, Any]] = []
+                for it in items_in:
+                    tt = float(it.get("t", 0.0))
+                    txt = by_t.get(tt)
+                    if not txt:
+                        # fallback: prefer action_spotting's Turkish description
+                        txt = str(it.get("description_tr") or "").strip()
+                    if not txt:
+                        lbl = str(it.get("event_label") or "aksiyon")
+                        a = it.get("actor_track_id")
+                        txt = f"{lbl}!" if a is None else f"{lbl}! Topu en son kontrol eden oyuncu #{int(a)}."
+                    items_out.append({**it, "text": txt, "commentary_text": txt})
+
+                commentary_output_path = str(Path(out_dir) / f"commentary_qwen_{run_id}.json")
+                with open(commentary_output_path, "w", encoding="utf-8") as f:
+                    json.dump(
+                        {
+                            "schema_version": "1.0",
+                            "run_id": run_id,
+                            "created_utc": datetime.utcnow().isoformat() + "Z",
+                            "qwen_url": qwen_url,
+                            "qwen_model": qwen_model,
+                            "qwen_error": err,
+                            "items": items_out,
+                        },
+                        f,
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+
+                if bool(getattr(cfg, "commentary_enable_tts", True)):
+                    tts_error: Optional[str] = None
+                    audio_manifest: List[Dict[str, Any]] = []
+                    clips: List[Tuple[float, str]] = []
+                    try:
+                        from commentary_engine import CommentaryEngine  # type: ignore
+
+                        tts_backend = str(
+                            getattr(cfg, "commentary_tts_backend", None)
+                            or os.getenv("COMMENTARY_TTS_BACKEND")
+                            or "xttsv2"
+                        )
+                        speaker_wav = getattr(cfg, "commentary_speaker_wav", None) or os.getenv("COMMENTARY_SPEAKER_WAV")
+                        ce = CommentaryEngine(
+                            output_dir=str(Path(out_dir) / f"commentary_{run_id}"),
+                            enable_llm=False,
+                            tts_backend=tts_backend,
+                            speaker_wav=speaker_wav,
+                        )
+
+                        for it in items_out:
+                            tt = float(it.get("t", 0.0))
+                            txt = str(it.get("commentary_text") or "").strip()
+                            if not txt:
+                                audio_manifest.append({**it, "audio_path": None, "status": "skipped", "error": "empty_text"})
+                                continue
+                            r = ce.synthesize_commentary(text=txt, t_seconds=tt)
+                            audio_manifest.append({**it, **r})
+                            ap = r.get("audio_path")
+                            if ap:
+                                try:
+                                    ap_s = str(ap)
+                                    if os.path.isfile(ap_s) and os.path.getsize(ap_s) > 1024:
+                                        clips.append((tt, ap_s))
+                                except Exception:
+                                    pass
+
+                        commentary_audio_manifest_path = str(Path(out_dir) / f"commentary_audio_{run_id}.json")
+                        with open(commentary_audio_manifest_path, "w", encoding="utf-8") as f:
+                            json.dump(
+                                {
+                                    "schema_version": "1.0",
+                                    "run_id": run_id,
+                                    "created_utc": datetime.utcnow().isoformat() + "Z",
+                                    "tts_backend": tts_backend,
+                                    "items": audio_manifest,
+                                },
+                                f,
+                                ensure_ascii=False,
+                                indent=2,
+                            )
+
+                        if clips:
+                            mixed_path = str(Path(out_dir) / f"product_{run_id}_commentary.mp4")
+                            mixed = _mix_commentary_audio_into_video(
+                                base_video_path=segment_path,
+                                out_path=mixed_path,
+                                clips=clips,
+                            )
+                            if mixed:
+                                commentary_video_path = mixed
+                                product_video_path = mixed
+                    except Exception as e:
+                        tts_error = str(e)
+
+                    # If TTS failed hard, append error info into the qwen output JSON for quick debugging.
+                    if tts_error and commentary_output_path:
+                        try:
+                            with open(commentary_output_path, "r", encoding="utf-8") as rf:
+                                cur_out = json.load(rf) or {}
+                            if isinstance(cur_out, dict):
+                                cur_out["tts_error"] = tts_error
+                                with open(commentary_output_path, "w", encoding="utf-8") as wf:
+                                    json.dump(cur_out, wf, ensure_ascii=False, indent=2)
+                        except Exception:
+                            pass
+    except Exception:
+        pass
+
     events_json_path = str(Path(out_dir) / f"events_{run_id}.json")
     payload = {
         "schema_version": "1.0",
@@ -1967,7 +2912,15 @@ def run_full_pipeline(
             "tracking_video_path": tracking_video_path,
             "tracks_csv_path": tracks_csv_path,
             **({"tracks_csv_raw_path": tracks_csv_raw_path} if tracks_csv_raw_path else {}),
+            **({"calibration_map_video_path": calibration_map_video_path} if calibration_map_video_path else {}),
+            **({"calibration_events_json_path": calibration_events_json_path} if calibration_events_json_path else {}),
+            **({"calibration_frames_jsonl_path": calibration_frames_jsonl_path} if calibration_frames_jsonl_path else {}),
             "overlay_video_path": final_overlay_path,
+            "product_video_path": product_video_path,
+            **({"commentary_input_path": commentary_input_path} if commentary_input_path else {}),
+            **({"commentary_output_path": commentary_output_path} if commentary_output_path else {}),
+            **({"commentary_audio_manifest_path": commentary_audio_manifest_path} if commentary_audio_manifest_path else {}),
+            **({"commentary_video_path": commentary_video_path} if commentary_video_path else {}),
         },
         **({"track_id_remap": track_id_remap} if track_id_remap else {}),
         "jersey_numbers": list(jersey_by_track.values()) if jersey_by_track else [],
@@ -1981,9 +2934,17 @@ def run_full_pipeline(
     return {
         "run_id": run_id,
         "segment_path": segment_path,
+        **({"calibration_map_video_path": calibration_map_video_path} if calibration_map_video_path else {}),
+        **({"calibration_events_json_path": calibration_events_json_path} if calibration_events_json_path else {}),
+        **({"calibration_frames_jsonl_path": calibration_frames_jsonl_path} if calibration_frames_jsonl_path else {}),
         "tracking_video_path": tracking_video_path,
         "tracks_csv_path": tracks_csv_path,
         "overlay_video_path": final_overlay_path,
+        "product_video_path": product_video_path,
+        **({"commentary_video_path": commentary_video_path} if commentary_video_path else {}),
+        **({"commentary_input_path": commentary_input_path} if commentary_input_path else {}),
+        **({"commentary_output_path": commentary_output_path} if commentary_output_path else {}),
+        **({"commentary_audio_manifest_path": commentary_audio_manifest_path} if commentary_audio_manifest_path else {}),
         "events_json_path": events_json_path,
         "event_count": len(events),
     }

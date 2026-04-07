@@ -16,6 +16,19 @@ interface VideoFile {
   kind?: string;
 }
 
+function _extractRunIdFromFilename(name: string): { prefix: string; runId: string } | null {
+  const base = String(name || "");
+  const lower = base.toLowerCase();
+  if (!lower.includes(".")) return null;
+  const stem = base.slice(0, base.lastIndexOf("."));
+  const i = stem.indexOf("_");
+  if (i <= 0) return null;
+  const prefix = stem.slice(0, i);
+  const rest = stem.slice(i + 1);
+  if (!rest) return null;
+  return { prefix, runId: rest };
+}
+
 export function VideoSelector() {
   const selectVideo = useAppStore((state) => state.selectVideo);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -152,13 +165,17 @@ export function VideoSelector() {
             const data = JSON.parse(ev.data);
 
             if (data?.type === "result" && data?.result) {
-              const overlayUrl = data.result.overlay_video_url as string;
+              const overlayUrl = (data.result.debug_video_url as string) || (data.result.overlay_video_url as string);
               const overlayPath = data.result.overlay_video_path as string;
+              const productUrl = (data.result.product_video_url as string) || (data.result.commentary_video_url as string) || overlayUrl;
+              const productPath = (data.result.product_video_path as string) || (data.result.commentary_video_path as string) || overlayPath;
+              const mapUrl = (data.result.calibration_map_video_url as string) || null;
               selectVideo({
-                normalUrl: overlayUrl,
+                normalUrl: productUrl,
                 debugUrl: overlayUrl,
-                path: overlayPath || uploadedPath,
-                name: (overlayPath || "overlay.mp4").split("/").pop() || "overlay.mp4",
+                mapUrl,
+                path: productPath || overlayPath || uploadedPath,
+                name: (productPath || overlayPath || "video.mp4").split("/").pop() || "video.mp4",
               });
               setStatusMessage("Tamamlandı.");
               refreshProcessedVideos();
@@ -235,12 +252,40 @@ export function VideoSelector() {
                       type="button"
                       size="sm"
                       onClick={() => {
-                        const url = v.url || `${BACKEND_URL}/api/video?path=${encodeURIComponent(v.path)}`;
+                        const overlayUrl = v.url || `${BACKEND_URL}/api/video?path=${encodeURIComponent(v.path)}`;
+                        let productUrl = overlayUrl;
+                        let productPath = v.path;
+
+                        // If this looks like overlay_<runid>.mp4, try to locate a matching product_<runid>_commentary.mp4
+                        // so that Debug Mode toggles between clean+audio vs boxed overlay.
+                        const parsed = _extractRunIdFromFilename(v.name);
+                        if (parsed && parsed.prefix.toLowerCase() === "overlay") {
+                          const runId = parsed.runId;
+                          const candidate = processedVideos.find((x) => {
+                            const ln = (x.name || "").toLowerCase();
+                            return ln.startsWith(`product_${runId.toLowerCase()}_`) || ln.startsWith(`product_${runId.toLowerCase()}.`);
+                          });
+                          if (candidate) {
+                            productPath = candidate.path;
+                            productUrl = candidate.url || `${BACKEND_URL}/api/video?path=${encodeURIComponent(candidate.path)}`;
+                          }
+                        }
+
+                        let mapUrl: string | null = null;
+                        if (parsed && parsed.prefix.toLowerCase() === "overlay") {
+                          const runId = parsed.runId;
+                          const mapCandidate = processedVideos.find((x) => (x.name || "").toLowerCase().startsWith(`map_${runId.toLowerCase()}.`));
+                          if (mapCandidate) {
+                            mapUrl = mapCandidate.url || `${BACKEND_URL}/api/video?path=${encodeURIComponent(mapCandidate.path)}`;
+                          }
+                        }
+
                         selectVideo({
-                          normalUrl: url,
-                          debugUrl: url,
-                          path: v.path,
-                          name: v.name,
+                          normalUrl: productUrl,
+                          debugUrl: overlayUrl,
+                          mapUrl,
+                          path: productPath,
+                          name: (productPath || v.path).split("/").pop() || v.name,
                         });
                         setStatusMessage("Overlay seçildi.");
                       }}

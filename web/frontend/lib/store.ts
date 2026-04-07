@@ -7,6 +7,7 @@ interface AppState {
   debugMode: boolean;
   normalUrl: string | null;
   debugUrl: string | null;
+  mapUrl: string | null;
   videoPath: string | null;
   videoName: string | null;
   videoId: number | null;
@@ -18,7 +19,7 @@ interface AppState {
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
   setDebugMode: (enabled: boolean) => void;
-  selectVideo: (video: { normalUrl: string; debugUrl: string; path: string; name: string; video_id?: number } | null) => void;
+  selectVideo: (video: { normalUrl: string; debugUrl: string; mapUrl?: string | null; path: string; name: string; video_id?: number } | null) => void;
   addFrameData: (data: any) => void;
   clearFrameData: () => void;
   setCurrentFrame: (frame: number) => void;
@@ -33,6 +34,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   debugMode: false,
   normalUrl: null,
   debugUrl: null,
+  mapUrl: null,
   videoPath: null,
   videoName: null,
   videoId: null,
@@ -65,10 +67,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   selectVideo: (video) => {
     if (video) {
-      const { normalUrl, debugUrl, path, name, video_id } = video as any;
+      const { normalUrl, debugUrl, mapUrl, path, name, video_id } = video as any;
       set({ 
         normalUrl, 
         debugUrl, 
+        mapUrl: mapUrl ?? null,
         videoPath: path, 
         videoName: name, 
         videoId: video_id ?? null,
@@ -81,6 +84,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ 
         normalUrl: null, 
         debugUrl: null, 
+        mapUrl: null,
         videoPath: null, 
         videoName: null, 
         videoId: null,
